@@ -77,20 +77,16 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
         if(LegalMoves().Contains(closestSlot)) { // if moved to a legal slot, move
             // see which dice was used and set it as used
-            int dice1 = Manager.instance.dice1;
-            int dice2 = Manager.instance.dice2;
-
-            if(player) { // since red moves counter-clockwise, moves need to be going down in index rather than up
-                dice1 = -dice1;
-                dice2 = -dice2;
+            int diceNum = Mathf.Abs(closestSlot.index - slot.index); // difference between start and end slot
+            // ^ this will cause issues when i add getting pieces out, because e.g. if you roll a 4 but get out the piece at 3
+            Manager.instance.diceRolls.Remove(diceNum); // will remove the first instance of num in the dice list
+            
+            if(closestSlot.pieces.Count == 1) { // check for capturable pieces
+                if(closestSlot.pieces[0].player != this.player) {
+                    Manager.instance.CapturePiece(closestSlot.pieces[0]);
+                }
             }
 
-            if(closestSlot.index == slot.index + dice1)
-                Manager.instance.dice1Used = true;
-            if(closestSlot.index == slot.index + dice2)
-                Manager.instance.dice2Used = true;
-
-            
             closestSlot.AddPiece(this);
         }
         
@@ -101,7 +97,7 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
         Manager.instance.HighlightLegalMoves();
 
-        if(Manager.instance.dice1Used && Manager.instance.dice2Used) {
+        if(Manager.instance.diceRolls.Count == 0) {
             Manager.instance.NextTurn();
         }
     }
@@ -109,41 +105,19 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
     public List<Slot> LegalMoves() {
         List<Slot> moves = new List<Slot>();
 
-        // I will have to figure out how to figure out if one dice has already been used
-        // I don't think I will allow undoing moves as it's too much hassle
-        // Anyways, if you make a move you need to undo you're just bad + L + ratio + why are you reading code comments instead of doing something productive
-        int dice1 = Manager.instance.dice1;
-        int dice2 = Manager.instance.dice2;
-
+        List<int> diceRolls = new List<int>(Manager.instance.diceRolls);
         if(player) { // since red moves counter-clockwise, moves need to be going down in index rather than up
-            dice1 = -dice1;
-            dice2 = -dice2;
-        }
-
-        // check first dice moves
-        if(!Manager.instance.dice1Used && !(slot.index + dice1 < 0)) {
-            if(!(slot.index + dice1 > 23)) {
-                Slot s = Manager.instance.slots[slot.index + dice1];
-                if(s.pieces.Count > 0) { // check for other player's pieces on that slot
-                    if(s.pieces[0].player != this.player) {
-                        if(s.pieces.Count <= 1) { // if there's more than 1, we can't move there
-                            moves.Add(s); // we can move to this slot and capture
-                        }
-                    }
-                    else {
-                        moves.Add(s); // there's pieces on there but they belong to us so we can move there
-                    }
-                }
-                else {
-                    moves.Add(s); // it's a free slot we can move to
-                }
+            for (int i = 0; i < diceRolls.Count; i++)
+            {
+                diceRolls[i] = -diceRolls[i];
             }
         }
-        
-        // check second dice moves
-        if(!Manager.instance.dice2Used && !(slot.index + dice2 < 0)) {
-            if(!(slot.index + dice2 > 23)) {
-                Slot s = Manager.instance.slots[slot.index + dice2];
+
+        // check dice moves
+        foreach (int diceRoll in diceRolls)
+        {
+            if(!(slot.index + diceRoll > 23) && !(slot.index + diceRoll < 0)) {
+                Slot s = Manager.instance.slots[slot.index + diceRoll];
                 if(s.pieces.Count > 0) { // check for other player's pieces on that slot
                     if(s.pieces[0].player != this.player) {
                         if(s.pieces.Count <= 1) { // if there's more than 1, we can't move there

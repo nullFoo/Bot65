@@ -13,8 +13,7 @@ public class Manager : MonoBehaviour
 
     public int dice1;
     public int dice2;
-    public bool dice1Used;
-    public bool dice2Used;
+    public List<int> diceRolls = new List<int>(); // 2 normally, but 4 for doubles
     [SerializeField] Image dice1Image;
     [SerializeField] Image dice2Image;
     [SerializeField] Sprite[] diceSprites;
@@ -65,8 +64,6 @@ public class Manager : MonoBehaviour
         turnText.text = TurnBoolToString(whoseTurn) + "'s turn";
         turnText.color = whoseTurn ? Color.red : Color.white;
         RollDice();
-        dice1Used = false;
-        dice2Used = false;
 
         // highlight pieces that can be moved
         HighlightLegalMoves();
@@ -101,6 +98,17 @@ public class Manager : MonoBehaviour
         dice1Image.sprite = diceSprites[dice1 - 1];
         dice2 = UnityEngine.Random.Range(1, 7);
         dice2Image.sprite = diceSprites[dice2 - 1];
+
+        if(dice1 == dice2) {
+            for (int i = 0; i < 4; i++) // double
+            {
+                diceRolls.Add(dice1);
+            }
+        }
+        else {
+            diceRolls.Add(dice1);
+            diceRolls.Add(dice2);
+        }
     }
 
     public void CapturePiece(Piece p) {
