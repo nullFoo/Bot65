@@ -33,6 +33,12 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
     {
         if(Manager.instance.whoseTurn != player) // can't move pieces if it's not our turn
             return;
+
+        Manager.instance.ClearHighlights();
+        Debug.Log(LegalMoves().Count);
+        foreach(Slot s in LegalMoves()) {
+            s.Highlight(true);
+        }
         
         slot.pieces.Remove(this);
         this.transform.parent = Manager.instance.topLayerParent;
@@ -69,19 +75,35 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
         Debug.Log(closestSlot.index);
 
-        if(closestSlot.pieces.Count > 0) { // check for other player's pieces on that slot
-            if(closestSlot.pieces[0].player != this.player) {
-                if(closestSlot.pieces.Count > 1) {
-                    // this isn't a legal move, go back to starting slot
-                    slot.AddPiece(this);
-                    return;
-                }
-                Manager.instance.CapturePiece(closestSlot.pieces[0]);
-            }
-        }
+        if(LegalMoves().Contains(closestSlot)) { // if moved to a legal slot, move
+            // see which dice was used and set it as used
+            int dice1 = Manager.instance.dice1;
+            int dice2 = Manager.instance.dice2;
 
-        closestSlot.AddPiece(this);
+            if(player) { // since red moves counter-clockwise, moves need to be going down in index rather than up
+                dice1 = -dice1;
+                dice2 = -dice2;
+            }
+
+            if(closestSlot.index == slot.index + dice1)
+                Manager.instance.dice1Used = true;
+            if(closestSlot.index == slot.index + dice2)
+                Manager.instance.dice2Used = true;
+
+            
+            closestSlot.AddPiece(this);
+        }
+        
+        // if not a legal move, go back to starting slot
+        slot.AddPiece(this);
+        
         Debug.Log(slot.index);
+
+        Manager.instance.HighlightLegalMoves();
+
+        if(Manager.instance.dice1Used && Manager.instance.dice2Used) {
+            Manager.instance.NextTurn();
+        }
     }
 
     public List<Slot> LegalMoves() {
@@ -93,7 +115,52 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
         int dice1 = Manager.instance.dice1;
         int dice2 = Manager.instance.dice2;
 
+        if(player) { // since red moves counter-clockwise, moves need to be going down in index rather than up
+            dice1 = -dice1;
+            dice2 = -dice2;
+        }
 
+        // check first dice moves
+        if(!Manager.instance.dice1Used && !(slot.index + dice1 < 0)) {
+            if(!(slot.index + dice1 > 23)) {
+                Slot s = Manager.instance.slots[slot.index + dice1];
+                if(s.pieces.Count > 0) { // check for other player's pieces on that slot
+                    if(s.pieces[0].player != this.player) {
+                        if(s.pieces.Count <= 1) { // if there's more than 1, we can't move there
+                            moves.Add(s); // we can move to this slot and capture
+                        }
+                    }
+                    else {
+                        moves.Add(s); // there's pieces on there but they belong to us so we can move there
+                    }
+                }
+                else {
+                    moves.Add(s); // it's a free slot we can move to
+                }
+            }
+        }
+        
+        // check second dice moves
+        if(!Manager.instance.dice2Used && !(slot.index + dice2 < 0)) {
+            if(!(slot.index + dice2 > 23)) {
+                Slot s = Manager.instance.slots[slot.index + dice2];
+                if(s.pieces.Count > 0) { // check for other player's pieces on that slot
+                    if(s.pieces[0].player != this.player) {
+                        if(s.pieces.Count <= 1) { // if there's more than 1, we can't move there
+                            moves.Add(s); // we can move to this slot and capture
+                        }
+                    }
+                    else {
+                        moves.Add(s); // there's pieces on there but they belong to us so we can move there
+                    }
+                }
+                else {
+                    moves.Add(s); // it's a free slot we can move to
+                }
+            }
+        }
+
+        return moves;
     }
 
 }

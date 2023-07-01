@@ -13,6 +13,8 @@ public class Manager : MonoBehaviour
 
     public int dice1;
     public int dice2;
+    public bool dice1Used;
+    public bool dice2Used;
     [SerializeField] Image dice1Image;
     [SerializeField] Image dice2Image;
     [SerializeField] Sprite[] diceSprites;
@@ -28,6 +30,8 @@ public class Manager : MonoBehaviour
 
     [SerializeField] GameObject piecePrefab;
     public Transform topLayerParent;
+
+    List<Piece> allPieces;
 
     public static Manager instance;
     void Awake() {
@@ -56,11 +60,36 @@ public class Manager : MonoBehaviour
     }
 
     public void NextTurn() {
+        // update turn and roll the dice
         whoseTurn = !whoseTurn;
-        RollDice();
-
         turnText.text = TurnBoolToString(whoseTurn) + "'s turn";
         turnText.color = whoseTurn ? Color.red : Color.white;
+        RollDice();
+        dice1Used = false;
+        dice2Used = false;
+
+        // highlight pieces that can be moved
+        HighlightLegalMoves();
+    }
+
+    public void HighlightLegalMoves() {
+        ClearHighlights();
+        foreach (Piece p in allPieces)
+        {
+            if(p.player == whoseTurn) {
+                if(p.LegalMoves().Count > 0) {
+                    // do some graphical thing
+                    p.slot.Highlight(true);
+                    continue;
+                }
+            }
+        }
+    }
+    public void ClearHighlights() {
+        foreach (Slot s in slots)
+        {
+            s.Highlight(false);
+        }
     }
 
     string TurnBoolToString(bool turn) {
@@ -120,6 +149,7 @@ public class Manager : MonoBehaviour
             return;
 
         // destroy all current pieces
+        allPieces = new List<Piece>();
         foreach (Piece p in GameObject.FindObjectsOfType<Piece>())
         {
             Destroy(p.gameObject);
@@ -157,6 +187,7 @@ public class Manager : MonoBehaviour
             Piece piece = Instantiate(piecePrefab, s.transform).GetComponent<Piece>();
             s.AddPiece(piece);
             piece.player = playerType;
+            allPieces.Add(piece);
         }
     }
 
@@ -171,48 +202,3 @@ public class Manager : MonoBehaviour
 
     #endregion
 }
-
-# region disgusting
-// if something goes wrong with the saving/loading system, here is the disgusting code for manually setting up the board
-
-        // for (int i = 0; i < 5; i++) {
-        //     Piece piece = Instantiate(piecePrefab, slots[5].piecesParent).GetComponent<Piece>();
-        //     slots[5].pieces.Add(piece);
-        //     piece.player = true;
-        // }
-        // for (int i = 0; i < 5; i++) {
-        //     Piece piece = Instantiate(piecePrefab, slots[18].piecesParent).GetComponent<Piece>();
-        //     slots[18].pieces.Add(piece);
-        //     piece.player = false;
-        // }
-        // for (int i = 0; i < 2; i++) {
-        //     Piece piece = Instantiate(piecePrefab, slots[0].piecesParent).GetComponent<Piece>();
-        //     slots[0].pieces.Add(piece);
-        //     piece.player = false;
-        // }
-        // for (int i = 0; i < 2; i++) {
-        //     Piece piece = Instantiate(piecePrefab, slots[23].piecesParent).GetComponent<Piece>();
-        //     slots[23].pieces.Add(piece);
-        //     piece.player = true;
-        // }
-        // for (int i = 0; i < 3; i++) {
-        //     Piece piece = Instantiate(piecePrefab, slots[7].piecesParent).GetComponent<Piece>();
-        //     slots[7].pieces.Add(piece);
-        //     piece.player = true;
-        // }
-        // for (int i = 0; i < 3; i++) {
-        //     Piece piece = Instantiate(piecePrefab, slots[16].piecesParent).GetComponent<Piece>();
-        //     slots[16].pieces.Add(piece);
-        //     piece.player = false;
-        // }
-        // for (int i = 0; i < 5; i++) {
-        //     Piece piece = Instantiate(piecePrefab, slots[11].piecesParent).GetComponent<Piece>();
-        //     slots[11].pieces.Add(piece);
-        //     piece.player = false;
-        // }
-        // for (int i = 0; i < 5; i++) {
-        //     Piece piece = Instantiate(piecePrefab, slots[12].piecesParent).GetComponent<Piece>();
-        //     slots[12].pieces.Add(piece);
-        //     piece.player = true;
-        // }
-# endregion
