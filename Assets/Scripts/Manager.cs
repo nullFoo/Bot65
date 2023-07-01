@@ -71,11 +71,9 @@ public class Manager : MonoBehaviour
     }
 
     void Start() {
-        Debug.Log(slots[12].index);
         List<Slot> slotList = new List<Slot>(slots);
         slotList = slotList.OrderBy(s=>s.index).ToList();
         slots = slotList.ToArray();
-        Debug.Log(slots[12].index);
     }
 
     public void StartGame() {
@@ -84,7 +82,6 @@ public class Manager : MonoBehaviour
         slots = slotList.ToArray();
         // board setup
         LoadGameStateFromString("%!!!!,!(!!!+,!!!'!+!!!!&!!!!");
-        // Debug.Log(SaveGameStateToString());
 
         // roll for who goes first and start the round
         while(dice1 == dice2)
@@ -180,14 +177,10 @@ public class Manager : MonoBehaviour
     string SaveGameStateToString() {
         string state = "";
 
-        Debug.Log(slots.Length);
         foreach(Slot slot in slots) {
-            Debug.Log(slot.index);
-
             byte b = SaveSlotByte(slot);
-            Debug.Log(ByteToVisualStringForDebugging(b));
 
-            Debug.Log((char)(b + 33)); // add 33 to get an actual character instead of headings, whitespace etc
+            // add 33 to get an actual character instead of headings, whitespace etc
             state += (char)(b + 33); // char representation of these bits
         }
         
@@ -201,9 +194,7 @@ public class Manager : MonoBehaviour
 
     byte SaveSlotByte(Slot slot) {
         byte numPieces = (byte)slot.pieces.Count; // how many pieces on this slot (e.g. 00000101)
-        Debug.Log(ByteToVisualStringForDebugging(numPieces));
         byte whichType = Convert.ToByte(slot.WhichPlayersPieces()); // which player these pieces belong too (e.g. 00000001)
-        Debug.Log(ByteToVisualStringForDebugging(whichType));
 
         byte combine = (byte)((numPieces << 1) | whichType); // combine these into one byte (e.g. 00001011)
         // ^ this first moves the pieces number left by one (e.g. 00001010) then bitwise ors it with the player type
@@ -237,7 +228,6 @@ public class Manager : MonoBehaviour
 
         // captured pieces
         int numCaptured1 = (int)data[26] - 33;
-        Debug.Log(numCaptured1);
         for (int i = 0; i < numCaptured1; i++)
         {
             Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
@@ -245,7 +235,6 @@ public class Manager : MonoBehaviour
             CapturePiece(piece);
         }
         int numCaptured2 = (int)data[27] - 33;
-        Debug.Log(numCaptured2);
         for (int i = 0; i < numCaptured2; i++)
         {
             Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
@@ -255,18 +244,12 @@ public class Manager : MonoBehaviour
     }
     void LoadSlotByte(char c, Slot s) {
         // wacky bit hijinks
-        Debug.Log(c);
-        Debug.Log((int)c);
         int charInt = (int)c - 33;
-        Debug.Log(charInt);
         byte b = (byte)charInt;
-        Debug.Log(ByteToVisualStringForDebugging(b));
 
         bool playerType = ((b & 1) != 0);
-        Debug.Log(playerType);
 
         int pieceCount = (int)(b >> 1);
-        Debug.Log(pieceCount);
 
         // actually setting up the slot
         for (int i = 0; i < pieceCount; i++)
