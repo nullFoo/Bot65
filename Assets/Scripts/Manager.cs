@@ -24,13 +24,19 @@ public class Manager : MonoBehaviour
 
     public List<Piece> player1Out;
     public List<Piece> player2Out;
-    public List<Piece> player1Middle;
-    public List<Piece> player2Middle;
+    public List<Piece> player1Captured;
+    public List<Piece> player2Captured;
+
+    // "slots" to put captured pieces in, -1 and 24 respectively
+    [SerializeField] Slot whiteCaptured;
+    [SerializeField] Slot redCaptured;
 
     [SerializeField] GameObject piecePrefab;
     public Transform topLayerParent;
 
     List<Piece> allPieces;
+
+    [SerializeField] GameObject passButton;
 
     public static Manager instance;
     void Awake() {
@@ -38,13 +44,17 @@ public class Manager : MonoBehaviour
     }
 
     void Start() {
-        slots = GameObject.FindObjectsOfType<Slot>();
+        Debug.Log(slots[12].index);
         List<Slot> slotList = new List<Slot>(slots);
         slotList = slotList.OrderBy(s=>s.index).ToList();
         slots = slotList.ToArray();
+        Debug.Log(slots[12].index);
     }
 
     public void StartGame() {
+        List<Slot> slotList = new List<Slot>(slots);
+        slotList = slotList.OrderBy(s=>s.index).ToList();
+        slots = slotList.ToArray();
         // board setup
         LoadGameStateFromString("%!!!!,!(!!!+,!!!'!+!!!!&!!!!");
         // Debug.Log(SaveGameStateToString());
@@ -59,6 +69,8 @@ public class Manager : MonoBehaviour
     }
 
     public void NextTurn() {
+        passButton.SetActive(false);
+        
         // update turn and roll the dice
         whoseTurn = !whoseTurn;
         turnText.text = TurnBoolToString(whoseTurn) + "'s turn";
@@ -71,15 +83,22 @@ public class Manager : MonoBehaviour
 
     public void HighlightLegalMoves() {
         ClearHighlights();
+
+        int legalMoves = 0;
         foreach (Piece p in allPieces)
         {
             if(p.player == whoseTurn) {
                 if(p.LegalMoves().Count > 0) {
                     // do some graphical thing
                     p.slot.Highlight(true);
+                    legalMoves++;
                     continue;
                 }
             }
+        }
+
+        if(legalMoves == 0) { // if the player has no legal moves, they must pass the turn
+            passButton.SetActive(true);
         }
     }
     public void ClearHighlights() {
@@ -94,6 +113,8 @@ public class Manager : MonoBehaviour
     }
 
     void RollDice() {
+        diceRolls = new List<int>();
+        
         dice1 = UnityEngine.Random.Range(1, 7);
         dice1Image.sprite = diceSprites[dice1 - 1];
         dice2 = UnityEngine.Random.Range(1, 7);
@@ -112,8 +133,19 @@ public class Manager : MonoBehaviour
     }
 
     public void CapturePiece(Piece p) {
-        p.slot.pieces.Remove(p);
-        p.transform.parent = null; // todo: some transform in the center
+        Debug.Log("Capturing " + TurnBoolToString(p.player) + " piece on slot " + p.slot);
+        if(p.slot)
+            p.slot.pieces.Remove(p);
+        if(p.player) {
+            redCaptured.AddPiece(p);
+            player2Captured.Add(p);
+        }
+        else {
+            whiteCaptured.AddPiece(p);
+            player1Captured.Add(p);
+        }
+
+        p.isCaptured = true;
     }
 
     #region saving and loading
@@ -134,8 +166,8 @@ public class Manager : MonoBehaviour
         
         state += (char)(player1Out.Count + 33);
         state += (char)(player2Out.Count + 33);
-        state += (char)(player1Middle.Count + 33);
-        state += (char)(player2Middle.Count + 33);
+        state += (char)(player1Captured.Count + 33);
+        state += (char)(player2Captured.Count + 33);
 
         return state;
     }
@@ -172,7 +204,27 @@ public class Manager : MonoBehaviour
             LoadSlotByte(data[i], slots[i]);
         }
 
-        // todo out & middle
+        // todo: out pieces
+        int numOut1 = (int)data[24] - 33;
+        int numOut2 = (int)data[25] - 33;
+
+        // captured pieces
+        int numCaptured1 = (int)data[26] - 33;
+        Debug.Log(numCaptured1);
+        for (int i = 0; i < numCaptured1; i++)
+        {
+            Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
+            piece.player = false;
+            CapturePiece(piece);
+        }
+        int numCaptured2 = (int)data[27] - 33;
+        Debug.Log(numCaptured2);
+        for (int i = 0; i < numCaptured2; i++)
+        {
+            Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
+            piece.player = true;
+            CapturePiece(piece);
+        }
     }
     void LoadSlotByte(char c, Slot s) {
         // wacky bit hijinks
@@ -192,7 +244,7 @@ public class Manager : MonoBehaviour
         // actually setting up the slot
         for (int i = 0; i < pieceCount; i++)
         {
-            Piece piece = Instantiate(piecePrefab, s.transform).GetComponent<Piece>();
+            Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
             s.AddPiece(piece);
             piece.player = playerType;
             allPieces.Add(piece);

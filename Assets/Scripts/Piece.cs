@@ -22,6 +22,9 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
     public Slot slot;
 
+    public bool isOut;
+    public bool isCaptured;
+
     Image image;
     void Start() {
         image = GetComponent<Image>();
@@ -87,6 +90,12 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                 }
             }
 
+            if(isCaptured) {
+                isCaptured = false;
+                Manager.instance.player1Captured.Remove(this);
+                Manager.instance.player2Captured.Remove(this);
+            }
+
             closestSlot.AddPiece(this);
         }
         
@@ -97,13 +106,17 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
         Manager.instance.HighlightLegalMoves();
 
-        if(Manager.instance.diceRolls.Count == 0) {
+        if(Manager.instance.diceRolls.Count == 0 && Manager.instance.whoseTurn == player) {
             Manager.instance.NextTurn();
         }
     }
 
     public List<Slot> LegalMoves() {
         List<Slot> moves = new List<Slot>();
+
+        List<Piece> capturedCheck = this.player ? Manager.instance.player2Captured : Manager.instance.player1Captured;
+        if(capturedCheck.Count > 0 && !isCaptured) // if this player has a piece captured and it's not this one, we can't move
+            return moves;
 
         List<int> diceRolls = new List<int>(Manager.instance.diceRolls);
         if(player) { // since red moves counter-clockwise, moves need to be going down in index rather than up

@@ -6,14 +6,16 @@ public class Slot : MonoBehaviour
 {
     public int index;
     public List<Piece> pieces;
-    Transform piecesParent;
+    [SerializeField] Transform piecesParent;
 
-    GameObject highlight;
+    [SerializeField] GameObject highlight;
 
     void Start() {
         pieces = new List<Piece>();
-        piecesParent = this.transform.GetChild(1);
-        highlight = this.transform.GetChild(0).GetChild(0).gameObject; // I know this is bad practice, I don't care
+        if(piecesParent == null)
+            piecesParent = this.transform.GetChild(1);
+        if(highlight == null)
+            highlight = this.transform.GetChild(0).GetChild(0).gameObject; // I know this is bad practice, I don't care
     }
 
     public void Highlight(bool h) {
@@ -21,7 +23,8 @@ public class Slot : MonoBehaviour
     }
 
     public void AddPiece(Piece p) {
-        pieces.Add(p);
+        if(!pieces.Contains(p))
+            pieces.Add(p);
         p.slot = this;
         p.transform.parent = piecesParent;
     }
