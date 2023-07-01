@@ -39,6 +39,14 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                 return slot.index >= 18;
         }
     }
+    bool canOut {
+        get {
+            if(player)
+                return Manager.instance.RedCanOut;
+            else
+                return Manager.instance.WhiteCanOut;
+        }
+    }
 
     Image image;
     void Start() {
@@ -161,6 +169,23 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                 }
                 else {
                     moves.Add(s); // it's a free slot we can move to
+                }
+            }
+
+            if(canOut) {
+                bool legalOut = false;
+                // todo: when less than dice roll, but no occupied slots higher
+                if(player) {
+                    legalOut = slot.index == -diceRoll;
+                    Debug.Log(slot.index + " " + -diceRoll);
+                }
+                else {
+                    legalOut = slot.index - 24 == -diceRoll;
+                    Debug.Log(slot.index - 24 + " " + -diceRoll);
+                }
+
+                if(legalOut) {
+
                 }
             }
         }
