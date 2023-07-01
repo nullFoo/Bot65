@@ -38,6 +38,33 @@ public class Manager : MonoBehaviour
 
     [SerializeField] GameObject passButton;
 
+    public bool WhiteCanOut {
+        get {
+            foreach (Piece p in allPieces)
+            {
+                if(!p.player) {
+                    if(!p.inBase) { // if any of them aren't in the base, we can't
+                        return false;
+                    }
+                }
+            }
+            return true; // if we haven't come across one that isn't, they must all be
+        }
+    }
+    public bool RedCanOut {
+        get {
+            foreach (Piece p in allPieces)
+            {
+                if(p.player) {
+                    if(!p.inBase) { // if any of them aren't in the base, we can't
+                        return false;
+                    }
+                }
+            }
+            return true; // if we haven't come across one that isn't, they must all be
+        }
+    }
+
     public static Manager instance;
     void Awake() {
         instance = this;
@@ -114,7 +141,7 @@ public class Manager : MonoBehaviour
 
     void RollDice() {
         diceRolls = new List<int>();
-        
+
         dice1 = UnityEngine.Random.Range(1, 7);
         dice1Image.sprite = diceSprites[dice1 - 1];
         dice2 = UnityEngine.Random.Range(1, 7);

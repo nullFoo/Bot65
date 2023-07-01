@@ -25,6 +25,21 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
     public bool isOut;
     public bool isCaptured;
 
+    public bool inBase {
+        get {
+            if(isOut)
+                return true;
+
+            if(slot == null)
+                return false;
+
+            if(player)
+                return slot.index <= 6;
+            else
+                return slot.index >= 18;
+        }
+    }
+
     Image image;
     void Start() {
         image = GetComponent<Image>();
@@ -116,6 +131,9 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
         List<Piece> capturedCheck = this.player ? Manager.instance.player2Captured : Manager.instance.player1Captured;
         if(capturedCheck.Count > 0 && !isCaptured) // if this player has a piece captured and it's not this one, we can't move
+            return moves;
+
+        if(isOut) // out pieces are done, no moving
             return moves;
 
         List<int> diceRolls = new List<int>(Manager.instance.diceRolls);
