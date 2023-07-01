@@ -30,6 +30,9 @@ public class Manager : MonoBehaviour
     // "slots" to put captured pieces in, -1 and 24 respectively
     [SerializeField] Slot whiteCaptured;
     [SerializeField] Slot redCaptured;
+    // "slots" for pieces that are out
+    [SerializeField] public Slot whiteOutSlot;
+    [SerializeField] public Slot redOutSlot;
 
     [SerializeField] GameObject piecePrefab;
     public Transform topLayerParent;
@@ -178,6 +181,9 @@ public class Manager : MonoBehaviour
         string state = "";
 
         foreach(Slot slot in slots) {
+            if(slot.index < 0 || slot.index > 23) // don't save the out virtual slots
+                continue;
+            
             byte b = SaveSlotByte(slot);
 
             // add 33 to get an actual character instead of headings, whitespace etc
