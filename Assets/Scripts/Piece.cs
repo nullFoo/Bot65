@@ -58,7 +58,7 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if(Manager.instance.whoseTurn != player) // can't move pieces if it's not our turn
+        if(Manager.instance.whoseTurn != player || !Manager.instance.game) // can't move pieces if it's not our turn
             return;
 
         Manager.instance.ClearHighlights();
@@ -72,7 +72,7 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
     public void OnDrag(PointerEventData data)
     {
-        if(Manager.instance.whoseTurn != player) // can't move pieces if it's not our turn
+        if(Manager.instance.whoseTurn != player || !Manager.instance.game) // can't move pieces if it's not our turn
             return;
 
         Vector3 globalMousePos;
@@ -85,7 +85,7 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if(Manager.instance.whoseTurn != player) // can't move pieces if it's not our turn
+        if(Manager.instance.whoseTurn != player || !Manager.instance.game) // can't move pieces if it's not our turn
             return;
         
         Slot closestSlot = slot;
@@ -104,7 +104,6 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
             int diceNum = GetItemFromSlot(LegalMoves(), closestSlot).Item2; 
             if(player)
                 diceNum = -diceNum;
-            Debug.Log("dice " + diceNum);
             Manager.instance.diceRolls.Remove(diceNum); // will remove the first instance of num in the dice list
             
             if(closestSlot.pieces.Count == 1) { // check for capturable pieces
@@ -119,20 +118,21 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                 Manager.instance.player2Captured.Remove(this);
             }
 
+            if(closestSlot.index > 900) { // the out slot
+                isOut = true;
+                if(player)
+                    Manager.instance.player2Out.Add(this);
+                else
+                    Manager.instance.player1Out.Add(this);
+            }
+
             closestSlot.AddPiece(this);
         }
         
         // if not a legal move, go back to starting slot
         slot.AddPiece(this);
         
-        // Debug.Log(closestSlot.index);
-        // Debug.Log(slot.index);
-
-        Manager.instance.HighlightLegalMoves();
-
-        if(Manager.instance.diceRolls.Count == 0 && Manager.instance.whoseTurn == player) {
-            Manager.instance.NextTurn();
-        }
+        Manager.instance.PieceMoved();
     }
 
     bool TupleHasItem1(List<(Slot, int)> list, Slot item1) {
@@ -150,6 +150,9 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
     public List<(Slot, int)> LegalMoves() {
         List<(Slot, int)> moves = new List<(Slot, int)>();
+
+        if(!Manager.instance.game) // if the game is over or not started, can't move anything
+            return moves;
 
         List<Piece> capturedCheck = this.player ? Manager.instance.player2Captured : Manager.instance.player1Captured;
         if(capturedCheck.Count > 0 && !isCaptured) // if this player has a piece captured and it's not this one, we can't move
@@ -191,9 +194,49 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                 // todo: when less than dice roll, but no occupied slots higher - could loop up from current slot index
                 if(player) {
                     legalOut = slot.index == -diceRoll;
+                    if(!legalOut) {
+                        if(-diceRoll > slot.index) {
+                            // check if there's any pieces above us
+                            for (int i = slot.index + 1; i <= 6; i++)
+                            {
+                                if(Manager.instance.slots[i].pieces.Count > 0) {
+                                    if(Manager.instance.slots[i].pieces[0].player == this.player) {
+                                        break;
+                                    }
+                                }
+                            }
+                            legalOut = true; // if there aren't, we can get this piece out
+                    }
+
+                    }
+                    
                 }
                 else {
                     legalOut = slot.index - 24 == -diceRoll;
+                    if(!legalOut) {
+                        if(-diceRoll < slot.index - 24) {
+                            Debug.Log((-diceRoll) + " < " + (slot.index - 24));
+
+                            // check if there's any pieces above us
+                            bool arePieces = false;
+                            Debug.Log(slot.index - 1);
+                            for (int i = slot.index - 1; i >= 18; i--)
+                            {
+                                Debug.Log("checking" + i);
+                                if(Manager.instance.slots[i].pieces.Count > 0) {
+                                    if(Manager.instance.slots[i].pieces[0].player == this.player) {
+                                        Debug.Log(i + "has our pieces on it");
+                                        arePieces = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            legalOut = !arePieces; // if there aren't, we can get this piece out
+                            Debug.Log(legalOut);
+                    }
+
+                    }
+                    
                 }
 
                 if(legalOut) {

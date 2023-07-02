@@ -19,6 +19,7 @@ public class Manager : MonoBehaviour
     [SerializeField] Sprite[] diceSprites;
 
     [SerializeField] TextMeshProUGUI turnText;
+    [SerializeField] TextMeshProUGUI gameOverText;
 
     public Slot[] slots;
 
@@ -40,6 +41,9 @@ public class Manager : MonoBehaviour
     List<Piece> allPieces;
 
     [SerializeField] GameObject passButton;
+    [SerializeField] GameObject startGameButton;
+
+    public bool game = false; // will be false before start and after finish
 
     public bool WhiteCanOut {
         get {
@@ -79,12 +83,18 @@ public class Manager : MonoBehaviour
         slots = slotList.ToArray();
     }
 
-    public void StartGame() {
+    public void StartGame(bool loadDefault = true) {
+        // make sure the slots are in the right order
         List<Slot> slotList = new List<Slot>(slots);
         slotList = slotList.OrderBy(s=>s.index).ToList();
         slots = slotList.ToArray();
+
+        // hide game end ui
+        gameOverText.transform.parent.gameObject.SetActive(false);
+
         // board setup
-        LoadGameStateFromString("%!!!!,!(!!!+,!!!'!+!!!!&!!!!");
+        if(loadDefault)
+            LoadGameStateFromString("%!!!!,!(!!!+,!!!'!+!!!!&!!!!");
 
         // roll for who goes first and start the round
         while(dice1 == dice2)
@@ -93,6 +103,9 @@ public class Manager : MonoBehaviour
         
         turnText.text = TurnBoolToString(whoseTurn) + "'s turn";
         turnText.color = whoseTurn ? Color.red : Color.white;
+
+        // enable moving
+        game = true;
     }
 
     public void NextTurn() {
@@ -106,6 +119,44 @@ public class Manager : MonoBehaviour
 
         // highlight pieces that can be moved
         HighlightLegalMoves();
+    }
+
+    public void PieceMoved() {
+        if(player1Out.Count >= 15) {
+            // white wins
+            Debug.Log("white wins");
+            
+            ClearHighlights();
+
+            gameOverText.transform.parent.gameObject.SetActive(true);
+            gameOverText.text = "Game Over\nWhite Wins!";
+            gameOverText.color = Color.white;
+
+            startGameButton.SetActive(true);
+
+            game = false;
+            return;
+        }
+        if(player2Out.Count >= 15) {
+            // red wins
+            Debug.Log("red wins");
+            
+            ClearHighlights();
+
+            gameOverText.transform.parent.gameObject.SetActive(true);
+            gameOverText.text = "Game Over\nRed Wins!";
+            gameOverText.color = Color.red;
+
+            startGameButton.SetActive(true);
+
+            game = false;
+            return;
+        }
+
+        HighlightLegalMoves();
+        if(diceRolls.Count == 0) {
+            NextTurn();
+        }
     }
 
     public void HighlightLegalMoves() {
@@ -177,6 +228,16 @@ public class Manager : MonoBehaviour
 
     #region saving and loading
 
+    public void LogSaveToConsole() {
+        Debug.Log(SaveGameStateToString());
+    }
+
+    [SerializeField] TMP_InputField input;
+    public void DebugLoad() {
+        LoadGameStateFromString(input.text);
+        StartGame(false);
+    }
+
     string SaveGameStateToString() {
         string state = "";
 
@@ -230,7 +291,23 @@ public class Manager : MonoBehaviour
 
         // todo: out pieces
         int numOut1 = (int)data[24] - 33;
+        for (int i = 0; i < numOut1; i++)
+        {
+            Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
+            piece.player = false;
+            piece.isOut = true;
+            slots[24].AddPiece(piece);
+            player1Out.Add(piece);
+        }
         int numOut2 = (int)data[25] - 33;
+        for (int i = 0; i < numOut2; i++)
+        {
+            Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
+            piece.player = true;
+            piece.isOut = true;
+            slots[25].AddPiece(piece);
+            player1Out.Add(piece);
+        }
 
         // captured pieces
         int numCaptured1 = (int)data[26] - 33;
