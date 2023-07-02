@@ -104,6 +104,8 @@ public class Manager : MonoBehaviour
         turnText.text = TurnBoolToString(whoseTurn) + "'s turn";
         turnText.color = whoseTurn ? Color.red : Color.white;
 
+        PieceMoved();
+
         // enable moving
         game = true;
     }
@@ -157,6 +159,8 @@ public class Manager : MonoBehaviour
         if(diceRolls.Count == 0) {
             NextTurn();
         }
+
+        Bot.instance.UpdateDebugText();
     }
 
     public void HighlightLegalMoves() {
