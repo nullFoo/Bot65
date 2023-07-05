@@ -29,10 +29,15 @@ public class Bot : MonoBehaviour
         float overallScore = 0;
 
         foreach(Piece p in GameObject.FindObjectsOfType<Piece>()) {
+            float pieceValue = EvaluatePiece(p);
+
             if(p.player)
-                overallScore += EvaluatePiece(p); // red
+                overallScore += pieceValue; // red
             else
-                overallScore -= EvaluatePiece(p); // white
+                overallScore -= pieceValue; // white
+
+                
+            p.debugText.text = pieceValue.ToString("F2");
         }
 
         return overallScore;
@@ -65,7 +70,8 @@ public class Bot : MonoBehaviour
         }
 
         int d = piece.player ? -1 : 1; // direction of movement
-        for (int i = 0; i < d * 6; i += d) // places it can move to within 1 dice roll
+        int amountBlocked = 0;
+        for (int i = 0; (d == 1 ? (i < 6) : (i > -6)); i += d) // places it can move to within 1 dice roll
         {
             int index = piece.slot.index + i;
             if(index > 23 || index < 0)
@@ -73,7 +79,7 @@ public class Bot : MonoBehaviour
 
             Slot s = Manager.instance.slots[index];
             if(s.pieces.Count > 0) {
-                if(s.pieces[0].player == piece.player) { // one of or pieces
+                if(s.pieces[0].player == piece.player) { // one of our pieces
                     if(s.pieces.Count == 1) { // we may be able to close next turn, so slight plus
                         positionValue += 0.05f;
                     }
@@ -87,10 +93,56 @@ public class Bot : MonoBehaviour
                     }
                     else { // a position is blocked - bad
                         positionValue -= 0.1f;
+                        amountBlocked++;
                     }
                 }
             }
         }
+        bool blocked = (amountBlocked == 6);
+        if(blocked) { // this piece can't move
+            positionValue -= 0.1f;
+        }
+
+        /*for (int i = 0; i < d * 12; i += d) // places it can move to with combinations of dice
+        {
+            float val = 0;
+
+            int index = piece.slot.index + i;
+            if(index > 23 || index < 0)
+                continue;
+
+            Slot s = Manager.instance.slots[index];
+            if(s.pieces.Count > 0) {
+                if(s.pieces[0].player == piece.player) { // one of or pieces
+                    if(s.pieces.Count == 1) { // we may be able to close
+                        val += 0.05f;
+                    }
+                    if(piece.slot.pieces.Count == 1) {
+                        val += 0.05f;
+                    }
+                }
+                else {
+                    if(s.pieces.Count == 1) { // we may be able to capture enemy piece next turn - good!
+                        val += 0.2f;
+                    }
+                    else { // a position is blocked - bad
+                        val -= 0.1f;
+                    }
+                }
+            }
+            else {
+                val += 0.025f; // empty space that we can move to
+            }
+
+            float probabilityMult = 6 - Mathf.Abs(7 - i); // how many options there are
+            probabilityMult /= 6;
+            if(blocked && (i > 6))
+                probabilityMult = 0; // we can't get to that square because this piece can't move at all
+            
+            val *= probabilityMult * 0.5f; // normalised by probability of that combination of dice, * 0.5 because this is less influential than single-dice possibilities
+            
+            positionValue += val;
+        }*/
 
         // if(piece.slot.pieces.Count == 1) { // we are exposed
         //     positionValue -= 0.1f;
@@ -99,7 +151,7 @@ public class Bot : MonoBehaviour
         //     {
         //         Slot s = Manager.instance.slots[i];
         //         if(s.pieces.Count > 0) {
-        //             if(!s.pieces[0].player) {
+        //             if(!s.pieces[0].player == piece.player) {
         //                 if(piece.slot.pieces.Count == 1) { // it's an exposed one too
         //                     // currently just ignore, but maybe do something based on who's turn it is?
         //                     continue;
@@ -118,7 +170,6 @@ public class Bot : MonoBehaviour
         //     positionValue -= enemyPiecesAheadScore * 0.2f;
         // }
 
-        piece.debugText.text = positionValue.ToString("F2");
         return positionValue;
     }
 }

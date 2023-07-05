@@ -100,11 +100,9 @@ public class Manager : MonoBehaviour
         while(dice1 == dice2)
             RollDice();
         whoseTurn = dice2 > dice1;
-        
-        turnText.text = TurnBoolToString(whoseTurn) + "'s turn";
-        turnText.color = whoseTurn ? Color.red : Color.white;
 
-        PieceMoved();
+        whoseTurn = !whoseTurn; // pre-invert because the NextTurn() function inverts it
+        NextTurn();
 
         // enable moving
         game = true;
@@ -121,6 +119,9 @@ public class Manager : MonoBehaviour
 
         // highlight pieces that can be moved
         HighlightLegalMoves();
+        
+        // update things
+        PieceMoved();
     }
 
     public void PieceMoved() {
@@ -179,9 +180,8 @@ public class Manager : MonoBehaviour
             }
         }
 
-        if(legalMoves == 0) { // if the player has no legal moves, they must pass the turn
-            passButton.SetActive(true);
-        }
+        // if the player has no legal moves, they must pass the turn
+        passButton.SetActive(legalMoves == 0);
     }
     public void ClearHighlights() {
         foreach (Slot s in slots)
@@ -328,6 +328,9 @@ public class Manager : MonoBehaviour
             piece.player = true;
             CapturePiece(piece);
         }
+
+        // update things
+        PieceMoved();
     }
     void LoadSlotByte(char c, Slot s) {
         // wacky bit hijinks
