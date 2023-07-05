@@ -53,40 +53,44 @@ public class Bot : MonoBehaviour
         else {
             if(piece.slot.pieces.Count > 1) { // position score based on where it's good to have a stack
                 if(piece.player)
-                    positionValue = stackPositionScores[piece.slot.index] / 23f;
+                    positionValue += stackPositionScores[piece.slot.index] / 23f;
                 else
-                    positionValue = stackPositionScores[23 - piece.slot.index] / 23f;
+                    positionValue += stackPositionScores[23 - piece.slot.index] / 23f;
             }
             
-            positionValue = (piece.player ? 23 - piece.slot.index : piece.slot.index) / 23f;
+            positionValue += (piece.player ? 23 - piece.slot.index : piece.slot.index) / 23f;
             if(piece.inBase) { // in base = worth more
                 positionValue *= 2f;
             }
         }
 
-        
-        
-        // for (int i = piece.slot.index + 1; i < piece.slot.index + 6; i++) // places it can move to within 1 dice roll
-        // {
-        //     if(i <= 23) { // to avoid errors
-        //         Slot s = Manager.instance.slots[i];
-        //         if(s.pieces.Count > 0) {
-        //             if(!s.pieces[0].player) { // one of pir pieces
-        //                 if(s.pieces.Count == 1 || piece.slot.pieces.Count == 1) { // we may be able to close next turn, so slight plus
-        //                     positionValue += 0.05f;
-        //                 }
-        //             }
-        //             else {
-        //                 if(s.pieces.Count == 1) { // we may be able to capture enemy piece next turn - good!
-        //                     positionValue += 0.2f;
-        //                 }
-        //                 else { // a position is blocked - bad
-        //                     positionValue -= 0.1f;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        int d = piece.player ? -1 : 1; // direction of movement
+        for (int i = 0; i < d * 6; i += d) // places it can move to within 1 dice roll
+        {
+            int index = piece.slot.index + i;
+            if(index > 23 || index < 0)
+                continue;
+
+            Slot s = Manager.instance.slots[index];
+            if(s.pieces.Count > 0) {
+                if(s.pieces[0].player == piece.player) { // one of or pieces
+                    if(s.pieces.Count == 1) { // we may be able to close next turn, so slight plus
+                        positionValue += 0.05f;
+                    }
+                    if(piece.slot.pieces.Count == 1) {
+                        positionValue += 0.05f;
+                    }
+                }
+                else {
+                    if(s.pieces.Count == 1) { // we may be able to capture enemy piece next turn - good!
+                        positionValue += 0.2f;
+                    }
+                    else { // a position is blocked - bad
+                        positionValue -= 0.1f;
+                    }
+                }
+            }
+        }
 
         // if(piece.slot.pieces.Count == 1) { // we are exposed
         //     positionValue -= 0.1f;

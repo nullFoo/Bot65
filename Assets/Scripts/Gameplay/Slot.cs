@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Slot : MonoBehaviour
 {
@@ -9,6 +10,12 @@ public class Slot : MonoBehaviour
     [SerializeField] Transform piecesParent;
 
     [SerializeField] GameObject highlight;
+    // temporary? debug
+    public Image highlightImage {
+        get {
+            return highlight.GetComponent<Image>();
+        }
+    }
 
     void Start() {
         pieces = new List<Piece>();

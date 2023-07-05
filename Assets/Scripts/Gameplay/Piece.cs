@@ -210,8 +210,7 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                                 }
                             }
                             legalOut = true; // if there aren't, we can get this piece out
-                    }
-
+                        }
                     }
                     
                 }
