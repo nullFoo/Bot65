@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 
 public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -50,6 +51,9 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
     }
 
     Image image;
+    public TextMeshProUGUI debugText;
+
+
     void Start() {
         image = GetComponent<Image>();
         rt = GetComponent<RectTransform>();
