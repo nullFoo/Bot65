@@ -103,7 +103,7 @@ public class Bot : MonoBehaviour
             positionValue -= 0.1f;
         }
 
-        /*for (int i = 0; i < d * 12; i += d) // places it can move to with combinations of dice
+        for (int i = 0; (d == 1 ? (i < 12) : (i > -12)); i += d) // places it can move to with combinations of dice
         {
             float val = 0;
 
@@ -134,15 +134,15 @@ public class Bot : MonoBehaviour
                 val += 0.025f; // empty space that we can move to
             }
 
-            float probabilityMult = 6 - Mathf.Abs(7 - i); // how many options there are
+            float probabilityMult = 6 - Mathf.Abs(7 - Mathf.Abs(i)); // how many options there are
             probabilityMult /= 6;
-            if(blocked && (i > 6))
+            if(blocked && (Mathf.Abs(i) > 6))
                 probabilityMult = 0; // we can't get to that square because this piece can't move at all
             
             val *= probabilityMult * 0.5f; // normalised by probability of that combination of dice, * 0.5 because this is less influential than single-dice possibilities
             
             positionValue += val;
-        }*/
+        }
 
         // if(piece.slot.pieces.Count == 1) { // we are exposed
         //     positionValue -= 0.1f;
