@@ -19,9 +19,17 @@ public class Bot : MonoBehaviour
     public void UpdateDebugText() {
         float evaluation = EvaluateGameState();
         string evalString = evaluation.ToString("F2");
+
+        string whosWinning = (evaluation < 0 ? "White" : "Red") + " is winning.";
+        Color colour = (evaluation < 0 ? Color.white : Color.red);
+        if(Mathf.Abs(evaluation) < 0.1f) { // it's even or very close to even
+            whosWinning = "Game is even";
+            colour = new Color(200, 200, 200);
+        }
+
         debugTextEvaluation.text = "Game state score: " + evalString 
-                                    + "\n" + (evaluation < 0 ? "White" : "Red") + " is winning.";
-        debugTextEvaluation.color = (evaluation < 0 ? Color.white : Color.red);
+                                    + "\n" + whosWinning;
+        debugTextEvaluation.color = colour;
     }
 
     // the bot will be playing red
@@ -144,31 +152,32 @@ public class Bot : MonoBehaviour
             positionValue += val;
         }
 
-        // if(piece.slot.pieces.Count == 1) { // we are exposed
-        //     positionValue -= 0.1f;
-        //     float enemyPiecesAheadScore = 0; // score based on enemy pieces that are ahead - especially if they can reach us within 1 dice roll
-        //     for (int i = piece.slot.index + 1; i <= 23; i++) // loop through all slots ahead of this one
-        //     {
-        //         Slot s = Manager.instance.slots[i];
-        //         if(s.pieces.Count > 0) {
-        //             if(!s.pieces[0].player == piece.player) {
-        //                 if(piece.slot.pieces.Count == 1) { // it's an exposed one too
-        //                     // currently just ignore, but maybe do something based on who's turn it is?
-        //                     continue;
-        //                 }
-        //                 else {
-        //                     if(Mathf.Abs(i - piece.slot.index) <= 6) {
-        //                         enemyPiecesAheadScore += 1;
-        //                     }
-        //                     else {
-        //                         enemyPiecesAheadScore += (Mathf.Abs(piece.slot.index - i) % 6) / 4; // 0-1 based on how many dice rolls it'll take to reach us
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     positionValue -= enemyPiecesAheadScore * 0.2f;
-        // }
+        if(piece.slot.pieces.Count == 1) { // we are exposed
+            positionValue -= 0.1f;
+            float enemyPiecesAheadScore = 0; // score based on enemy pieces that are ahead - especially if they can reach us within 1 dice roll
+            for (int i = (d == 1 ? 0 : 23); ((d == 1 ? (i < 23) : (i > 0))); i += d) // loop through all slots ahead of this one
+            {
+                Slot s = Manager.instance.slots[i];
+                if(s.pieces.Count > 0) {
+                    if(!s.pieces[0].player == piece.player) {
+                        if(piece.slot.pieces.Count == 1) { // it's an exposed one too
+                            // currently just neutral/cancel out, but maybe do something based on who's turn it is?
+                            continue;
+                        }
+                        else {
+                            int dif = Mathf.Abs(i - piece.slot.index); // distance to that slot from this piece
+                            if(dif <= 6) {
+                                enemyPiecesAheadScore += 1;
+                            }
+                            else {
+                                enemyPiecesAheadScore += (dif % 6) / 4; // 0-1 based on how many dice rolls it'll take to reach us
+                            }
+                        }
+                    }
+                }
+            }
+            positionValue -= enemyPiecesAheadScore * 0.2f;
+        }
 
         return positionValue;
     }
