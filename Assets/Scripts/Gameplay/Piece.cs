@@ -106,8 +106,7 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
         if(TupleHasItem1(LegalMoves(), closestSlot)) { // if moved to a legal slot, move
             // see which dice was used and set it as used
             int diceNum = GetItemFromSlot(LegalMoves(), closestSlot).Item2; 
-            if(player)
-                diceNum = -diceNum;
+            diceNum = Mathf.Abs(diceNum);
             Manager.instance.diceRolls.Remove(diceNum); // will remove the first instance of num in the dice list
             
             if(closestSlot.pieces.Count == 1) { // check for capturable pieces
@@ -136,6 +135,12 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
         // if not a legal move, go back to starting slot
         slot.AddPiece(this);
         
+        Manager.instance.PieceMoved();
+    }
+
+    public void MoveTo(Slot newSlot) {
+        slot.pieces.Remove(this);
+        newSlot.AddPiece(this);
         Manager.instance.PieceMoved();
     }
 

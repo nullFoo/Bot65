@@ -32,6 +32,78 @@ public class Bot : MonoBehaviour
         debugTextEvaluation.color = colour;
     }
 
+    public struct Move {
+        public Move(Piece p, Slot s, int dice) {
+            piece = p;
+            targetSlot = s;
+            moveNumber = dice;
+            gameEvaluationAfterMove = -10000;
+        }
+
+        public Piece piece;
+        public Slot targetSlot;
+        public int moveNumber;
+        public float gameEvaluationAfterMove;
+    }
+
+    public void DebugFuncTemp() {
+        List<Move> possibleMoves = GetPossibleMoves(Manager.instance.diceRolls);
+        Move m = GetBestMove(possibleMoves);
+        Debug.Log(m);
+        Debug.Log(Manager.instance.diceRolls.Count);
+        Manager.instance.diceRolls.Remove(Mathf.Abs(m.moveNumber));
+        Debug.Log(Manager.instance.diceRolls.Count);
+        m.piece.MoveTo(m.targetSlot);
+    }
+
+    // problem: we want to get the best combination of 2 (or 4, for double) moves - at the moment, we are just getting the best singular move
+    public Move GetBestMove(List<Move> possibleMoves) {
+        if(possibleMoves.Count <= 0)
+            return new Move(null, null, 0);
+        
+        Move best = possibleMoves[0];
+
+        List<Move> copyList = new List<Move>(possibleMoves);
+        for (int i = 0; i < copyList.Count; i++)
+        {
+            Move m = possibleMoves[i];
+            
+            Slot start = m.piece.slot; // so we can return it after calculating - todo: allow evaluation for moves that aren't the current state
+            m.piece.MoveTo(m.targetSlot);
+            float eval = EvaluateGameState();
+            m.gameEvaluationAfterMove = eval;
+            if(eval > best.gameEvaluationAfterMove)
+                best = m;
+            m.piece.MoveTo(start);
+        }
+
+        return best;
+    }
+
+    // problem as mentioned above
+    public List<Move> GetPossibleMoves(List<int> _diceRolls) {
+        // this may have to be split across several frames
+
+        List<Move> moves = new List<Move>();
+        
+        List<int> diceRolls = new List<int>(_diceRolls);
+        for (int i = 0; i < diceRolls.Count; i++)
+        {
+            diceRolls[i] = -diceRolls[i];
+        }
+
+        foreach(Piece p in GameObject.FindObjectsOfType<Piece>()) {
+            if(p.player) { // the bot can only move red pieces
+                foreach((Slot, int) m in p.LegalMoves()) {
+                    Move move = new Move(p, m.Item1, m.Item2);
+                    moves.Add(move);
+                }
+            }
+        }
+
+        return moves;
+    }
+
     // the bot will be playing red
     public float EvaluateGameState() {        
         float overallScore = 0;
