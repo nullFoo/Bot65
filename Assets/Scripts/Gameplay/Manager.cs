@@ -29,8 +29,8 @@ public class Manager : MonoBehaviour
     public List<Piece> player2Captured;
 
     // "slots" to put captured pieces in, -1 and 24 respectively
-    [SerializeField] Slot whiteCaptured;
-    [SerializeField] Slot redCaptured;
+    [SerializeField] public Slot whiteCaptured;
+    [SerializeField] public Slot redCaptured;
     // "slots" for pieces that are out
     [SerializeField] public Slot whiteOutSlot;
     [SerializeField] public Slot redOutSlot;
@@ -348,6 +348,10 @@ public class Manager : MonoBehaviour
             piece.player = playerType;
             allPieces.Add(piece);
         }
+    }
+
+    public void LoadFromGameStateObject(GameState gameState) {
+
     }
 
     string ByteToVisualStringForDebugging(byte b) {
