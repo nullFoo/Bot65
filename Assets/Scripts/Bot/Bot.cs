@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using static GameState;
 using TMPro;
+using static GameState;
 
 public class Bot : MonoBehaviour
 {
@@ -33,6 +34,45 @@ public class Bot : MonoBehaviour
         debugTextEvaluation.text = "Game state score: " + evalString 
                                     + "\n" + whosWinning;
         debugTextEvaluation.color = colour;
+    }
+
+    public void DebugFuncTemp() {
+        GameState currentGameState = GameState.GameStateFromCurrentBoard();
+        List<Move> legalMoves = currentGameState.GetAllLegalMoves();
+        DoMoveInGame(legalMoves[0]);
+    }
+
+    public void DoMoveInGame(Move move) { // find the actual Piece and Slot objects from the move and do it
+        Slot slot = Manager.instance.slots.First(s => s.index == move.targetSlot.index);
+        if(slot == null) {
+            return;
+        }
+        Debug.Log(move.piece.slot.index);
+        Piece piece = Manager.instance.allPieces.First(p => p.slot.index == move.piece.slot.index); // pieces on the same slot are functionally identical, so just the first one that's on the same slot
+        if(piece == null) {
+            return;
+        }
+
+        Manager.instance.diceRolls.Remove(move.moveNumber);
+        piece.MoveTo(slot);
+    }
+
+    public struct Move {
+        public PieceAbstract piece;
+        public SlotAbstract targetSlot;
+        public int moveNumber;
+
+        public GameState after;
+
+        public Move(GameState gameState, PieceAbstract p, SlotAbstract s, int dice) {
+            this.piece = p;
+            this.targetSlot = s;
+            this.moveNumber = dice;
+
+            this.after = new GameState(gameState);
+            // after.MovePiece(p, s);
+            // after.diceRolls.Remove(moveNumber);
+        }
     }
 
     // the bot will be playing red

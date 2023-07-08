@@ -38,7 +38,7 @@ public class Manager : MonoBehaviour
     [SerializeField] GameObject piecePrefab;
     public Transform topLayerParent;
 
-    List<Piece> allPieces;
+    public List<Piece> allPieces;
 
     [SerializeField] GameObject passButton;
     [SerializeField] GameObject startGameButton;
