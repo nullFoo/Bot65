@@ -317,15 +317,17 @@ public class GameState
         p.isCaptured = true;
     }
 
-    public List<Move> GetAllLegalMoves() {
+    public List<Move> GetAllLegalMoves(bool _player) {
         List<Move> moves = new List<Move>();
         foreach(PieceAbstract piece in allPieces) {
-            Debug.Log(piece.slot.index);
-            List<Move> movesForThisPiece = piece.LegalMoves();
-            if(movesForThisPiece.Count > 0) {
-                Debug.Log(movesForThisPiece[0].moveNumber);
-                Debug.Log(movesForThisPiece[0].piece.slot.index);
-                moves.AddRange(movesForThisPiece);
+            if(piece.player == _player) {
+                Debug.Log(piece.slot.index);
+                List<Move> movesForThisPiece = piece.LegalMoves();
+                if(movesForThisPiece.Count > 0) {
+                    Debug.Log(movesForThisPiece[0].moveNumber);
+                    Debug.Log(movesForThisPiece[0].piece.slot.index);
+                    moves.AddRange(movesForThisPiece);
+                }
             }
         }
         return moves;

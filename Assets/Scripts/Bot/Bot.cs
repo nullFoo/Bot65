@@ -38,7 +38,7 @@ public class Bot : MonoBehaviour
 
     public void DebugFuncTemp() {
         GameState currentGameState = GameState.GameStateFromCurrentBoard();
-        List<Move> legalMoves = currentGameState.GetAllLegalMoves();
+        List<Move> legalMoves = currentGameState.GetAllLegalMoves(true);
         DoMoveInGame(legalMoves[0]);
     }
 
@@ -70,8 +70,10 @@ public class Bot : MonoBehaviour
             this.moveNumber = dice;
 
             this.after = new GameState(gameState);
-            // after.MovePiece(p, s);
-            // after.diceRolls.Remove(moveNumber);
+            PieceAbstract newPiece = after.allPieces.First(pi => pi.slot.index == p.slot.index);
+            SlotAbstract newSlot = after.slots.First(sl => sl.index == s.index);
+            after.MovePiece(newPiece, newSlot);
+            after.diceRolls.Remove(moveNumber);
         }
     }
 
