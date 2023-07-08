@@ -282,10 +282,12 @@ public class GameState
         this.capturedSlotWhite = new SlotAbstract(copy.capturedSlotWhite, true, this);
         foreach(PieceAbstract piece in this.capturedSlotWhite.pieces) {
             this.whitePiecesCaptured.Add(piece);
+            piece.isCaptured = true;
         }
         this.capturedSlotRed = new SlotAbstract(copy.capturedSlotRed, true, this);
         foreach(PieceAbstract piece in this.capturedSlotRed.pieces) {
             this.redPiecesCaptured.Add(piece);
+            piece.isCaptured = true;
         }
 
         this.diceRolls = new List<int>(copy.diceRolls);
@@ -321,11 +323,8 @@ public class GameState
         List<Move> moves = new List<Move>();
         foreach(PieceAbstract piece in allPieces) {
             if(piece.player == _player) {
-                Debug.Log(piece.slot.index);
                 List<Move> movesForThisPiece = piece.LegalMoves();
                 if(movesForThisPiece.Count > 0) {
-                    Debug.Log(movesForThisPiece[0].moveNumber);
-                    Debug.Log(movesForThisPiece[0].piece.slot.index);
                     moves.AddRange(movesForThisPiece);
                 }
             }
@@ -359,10 +358,12 @@ public class GameState
         game.capturedSlotWhite = new SlotAbstract(m.whiteCaptured, true, game);
         foreach(PieceAbstract piece in game.capturedSlotWhite.pieces) {
             game.whitePiecesCaptured.Add(piece);
+            piece.isCaptured = true;
         }
         game.capturedSlotRed = new SlotAbstract(m.redCaptured, true, game);
         foreach(PieceAbstract piece in game.capturedSlotRed.pieces) {
             game.redPiecesCaptured.Add(piece);
+            piece.isCaptured = true;
         }
 
         game.diceRolls = new List<int>(m.diceRolls);

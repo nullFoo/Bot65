@@ -12,7 +12,8 @@ public class Bot : MonoBehaviour
     [SerializeField] TextMeshProUGUI debugTextEvaluation;
 
     float[] stackPositionScores = new float[]
-    {10, 9, 8, 7, 6, 5, 8, 4, 3, 2, 2, 2, 2, 2, 2, 2, 2, 5, 0, 1, 1, 2, 2, 3};
+    {10, 9.8f, 9.6f, 9.4f, 9.2f, 9f, 8, 4, 3, 2, 2, 2, 2, 2, 2, 2, 2, 5, 0, -2, -2, -1, 0, 1};
+    // todo: different scores at different points in the game (like when you're in the base)
 
     void Awake() {
         instance = this;
@@ -21,7 +22,8 @@ public class Bot : MonoBehaviour
     public void UpdateDebugText() {
         GameState currentGameState = GameState.GameStateFromCurrentBoard();
 
-        float evaluation = EvaluateGameState(currentGameState);
+        // float evaluation = EvaluateGameState(currentGameState, true);
+        float evaluation = EvaluateGameState(); // use this function instead, so it updates debug texts properly
         string evalString = evaluation.ToString("F2");
 
         string whosWinning = (evaluation < 0 ? "White" : "Red") + " is winning.";
@@ -36,10 +38,26 @@ public class Bot : MonoBehaviour
         debugTextEvaluation.color = colour;
     }
 
-    public void DebugFuncTemp() {
+    public void DebugFuncTemp() { // note: currently, it only does the best singular move. needs to be looking for the best *combination* of moves with the available dice
         GameState currentGameState = GameState.GameStateFromCurrentBoard();
         List<Move> legalMoves = currentGameState.GetAllLegalMoves(true);
-        DoMoveInGame(legalMoves[0]);
+
+        if(legalMoves.Count == 0) {
+            // pass turn
+            return;
+        }
+
+        Move best = legalMoves[0];
+        float bestEval = -1000;
+        foreach(Move m in legalMoves) {
+            float eval = EvaluateGameState(m.after);
+            if(eval > bestEval) {
+                bestEval = eval;
+                best = m;
+            }
+        }
+
+        DoMoveInGame(best);
     }
 
     public void DoMoveInGame(Move move) { // find the actual Piece and Slot objects from the move and do it
@@ -47,13 +65,12 @@ public class Bot : MonoBehaviour
         if(slot == null) {
             return;
         }
-        Debug.Log(move.piece.slot.index);
         Piece piece = Manager.instance.allPieces.First(p => p.slot.index == move.piece.slot.index); // pieces on the same slot are functionally identical, so just the first one that's on the same slot
         if(piece == null) {
             return;
         }
 
-        Manager.instance.diceRolls.Remove(move.moveNumber);
+        Manager.instance.diceRolls.Remove(Mathf.Abs(move.moveNumber));
         piece.MoveTo(slot);
     }
 
@@ -109,17 +126,20 @@ public class Bot : MonoBehaviour
             positionValue = -2f;
         }
         else {
-            if(piece.slot.pieces.Count > 1) { // position score based on where it's good to have a stack
+            // score based on proximity to end
+            positionValue += (piece.player ? 23 - piece.slot.index : piece.slot.index) / 23f;
+            if(piece.inBase) { // in base = worth more
+                positionValue *= 1.5f;
+            }
+            
+            if(piece.slot.pieces.Count > 1) { // score based on where it's good to have a stack
+                positionValue += 0.1f; // good to be in a stack
                 if(piece.player)
                     positionValue += stackPositionScores[piece.slot.index] / 23f;
                 else
                     positionValue += stackPositionScores[23 - piece.slot.index] / 23f;
             }
             
-            positionValue += (piece.player ? 23 - piece.slot.index : piece.slot.index) / 23f;
-            if(piece.inBase) { // in base = worth more
-                positionValue *= 2f;
-            }
         }
 
         int d = piece.player ? -1 : 1; // direction of movement
@@ -229,7 +249,7 @@ public class Bot : MonoBehaviour
     
 
     // same as the above two functions, but based on a GameState object instead of neccessarily the current board
-    public float EvaluateGameState(GameState state) {        
+    public float EvaluateGameState(GameState state, bool isCurrent = false) {        
         float overallScore = 0;
 
         foreach(PieceAbstract p in state.allPieces) {
@@ -257,16 +277,18 @@ public class Bot : MonoBehaviour
             positionValue = -2f;
         }
         else {
-            if(piece.slot.pieces.Count > 1) { // position score based on where it's good to have a stack
+            // score based on proximity to end
+            positionValue += (piece.player ? 23 - piece.slot.index : piece.slot.index) / 23f;
+            if(piece.inBase) { // in base = worth more
+                positionValue *= 1.5f;
+            }
+            
+            if(piece.slot.pieces.Count > 1) { // score based on where it's good to have a stack
+                positionValue += 0.1f; // good to be in a stack
                 if(piece.player)
                     positionValue += stackPositionScores[piece.slot.index] / 23f;
                 else
                     positionValue += stackPositionScores[23 - piece.slot.index] / 23f;
-            }
-            
-            positionValue += (piece.player ? 23 - piece.slot.index : piece.slot.index) / 23f;
-            if(piece.inBase) { // in base = worth more
-                positionValue *= 2f;
             }
         }
 

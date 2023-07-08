@@ -140,13 +140,14 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
     public void MoveTo(Slot newSlot) {
         slot.pieces.Remove(this);
-        newSlot.AddPiece(this);
         
         if(newSlot.pieces.Count == 1) { // check for capturable pieces
             if(newSlot.pieces[0].player != this.player) {
                 Manager.instance.CapturePiece(newSlot.pieces[0]);
             }
         }
+
+        newSlot.AddPiece(this);
 
         Manager.instance.PieceMoved();
     }

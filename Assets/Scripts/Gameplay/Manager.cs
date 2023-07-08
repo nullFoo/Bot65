@@ -215,6 +215,8 @@ public class Manager : MonoBehaviour
     }
 
     public void CapturePiece(Piece p) {
+        Debug.Log("capturing piece on slot " + p.slot.index);
+        
         if(p.slot)
             p.slot.pieces.Remove(p);
         if(p.player) {
