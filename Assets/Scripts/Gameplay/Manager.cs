@@ -125,8 +125,21 @@ public class Manager : MonoBehaviour
     }
 
     public void PieceMoved() {
-        Debug.Log(player1Out.Count);
-        Debug.Log(player2Out.Count);
+        player1Out = new List<Piece>();
+        player2Out = new List<Piece>();
+        player1Captured = new List<Piece>();
+        player2Captured = new List<Piece>();
+        foreach(Piece piece in allPieces) {
+            if(piece.isOut) {
+                List<Piece> whichList = piece.player ? player2Out : player1Out;
+                whichList.Add(piece);
+            }
+            if(piece.isCaptured) {
+                List<Piece> whichList = piece.player ? player2Captured : player1Captured;
+                whichList.Add(piece);
+            }
+        }
+
         if(player1Out.Count >= 15) {
             // white wins
             Debug.Log("white wins");
@@ -223,11 +236,9 @@ public class Manager : MonoBehaviour
             p.slot.pieces.Remove(p);
         if(p.player) {
             redCaptured.AddPiece(p);
-            player2Captured.Add(p);
         }
         else {
             whiteCaptured.AddPiece(p);
-            player1Captured.Add(p);
         }
 
         p.isCaptured = true;

@@ -139,28 +139,11 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
         if(newSlot == Manager.instance.whiteCaptured && newSlot == Manager.instance.redCaptured) {
             isCaptured = true;
-            if(player)
-                if(!Manager.instance.player2Captured.Contains(this))
-                    Manager.instance.player2Captured.Add(this);
-            else
-                if(!Manager.instance.player1Captured.Contains(this))
-                    Manager.instance.player1Captured.Add(this);
         }
         else {
             if(isCaptured) {
                 isCaptured = false;
-                Manager.instance.player1Captured.Remove(this);
-                Manager.instance.player2Captured.Remove(this);
             }
-        }
-
-        if(isOut) {
-            if(player)
-                if(!Manager.instance.player2Out.Contains(this))
-                    Manager.instance.player2Out.Add(this);
-            else
-                if(!Manager.instance.player1Out.Contains(this))
-                    Manager.instance.player1Out.Add(this);
         }
 
         newSlot.AddPiece(this);

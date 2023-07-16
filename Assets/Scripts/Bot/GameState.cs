@@ -147,18 +147,14 @@ public class GameState
                     // todo: when less than dice roll, but no occupied slots higher - could loop up from current slot index
                     if(player) {
                         legalOut = slot.index + 1 == -diceRoll; // the + 1 is because slot indices start at 0
-                        Debug.Log("legal out " + legalOut);
                         if(!legalOut) {
                             if(-diceRoll > slot.index) {
-                                Debug.Log((-diceRoll) + " > " + slot.index);
                                 // check if there's any pieces above us
                                 bool anyFound = false;
                                 for (int i = slot.index + 1; i <= 6; i++)
                                 {
-                                    Debug.Log("checking" + i);
                                     if(gameState.slots[i].pieces.Count > 0) {
                                         if(gameState.slots[i].pieces[0].player == this.player) {
-                                            Debug.Log(i + " has pieces, can't out");
                                             anyFound = true;
                                         }
                                     }
@@ -175,7 +171,6 @@ public class GameState
                             if(-diceRoll < slot.index - 24) {
                                 // check if there's any pieces above us
                                 bool anyFound = false;
-                                Debug.Log(slot.index - 1);
                                 for (int i = slot.index - 1; i >= 18; i--)
                                 {
                                     if(gameState.slots[i].pieces.Count > 0) {
