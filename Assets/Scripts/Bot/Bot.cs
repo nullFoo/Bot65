@@ -49,6 +49,7 @@ public class Bot : MonoBehaviour
 
         if(legalMoves.Count == 0) {
             // pass turn
+            Debug.Log("no legal moves");
             return;
         }
 

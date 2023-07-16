@@ -276,11 +276,13 @@ public class GameState
         this.outSlotRed = this.slots.First(s => s.index == copy.outSlotRed.index);
         this.capturedSlotWhite = new SlotAbstract(copy.capturedSlotWhite, true, this);
         foreach(PieceAbstract piece in this.capturedSlotWhite.pieces) {
+            this.allPieces.Add(piece);
             this.whitePiecesCaptured.Add(piece);
             piece.isCaptured = true;
         }
         this.capturedSlotRed = new SlotAbstract(copy.capturedSlotRed, true, this);
         foreach(PieceAbstract piece in this.capturedSlotRed.pieces) {
+            this.allPieces.Add(piece);
             this.redPiecesCaptured.Add(piece);
             piece.isCaptured = true;
         }
@@ -319,6 +321,7 @@ public class GameState
         foreach(PieceAbstract piece in allPieces) {
             if(piece.player == _player) {
                 List<Move> movesForThisPiece = piece.LegalMoves();
+                Debug.Log("piece at " + piece.slot.index + " has " + movesForThisPiece.Count + " legal moves");
                 if(movesForThisPiece.Count > 0) {
                     moves.AddRange(movesForThisPiece);
                 }
@@ -352,11 +355,13 @@ public class GameState
         game.outSlotRed = game.slots.First(s => s.index == m.redOutSlot.index);
         game.capturedSlotWhite = new SlotAbstract(m.whiteCaptured, true, game);
         foreach(PieceAbstract piece in game.capturedSlotWhite.pieces) {
+            game.allPieces.Add(piece);
             game.whitePiecesCaptured.Add(piece);
             piece.isCaptured = true;
         }
         game.capturedSlotRed = new SlotAbstract(m.redCaptured, true, game);
         foreach(PieceAbstract piece in game.capturedSlotRed.pieces) {
+            game.allPieces.Add(piece);
             game.redPiecesCaptured.Add(piece);
             piece.isCaptured = true;
         }
