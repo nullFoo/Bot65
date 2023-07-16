@@ -107,6 +107,7 @@ public class Bot : MonoBehaviour
     public float EvaluateGameState() {        
         float overallScore = 0;
 
+        // scores for each piece
         foreach(Piece p in GameObject.FindObjectsOfType<Piece>()) {
             float pieceValue = EvaluatePiece(p);
 
@@ -118,6 +119,33 @@ public class Bot : MonoBehaviour
                 
             p.debugText.text = pieceValue.ToString("F2");
         }
+        // more: score based on how many stacks each player has in their base
+        float redStacksScore = 0;
+        for (int i = 0; i <= 6; i++) // red base
+        {
+            Debug.Log(i);
+            Slot s = Manager.instance.slots[i];
+            if(s.pieces.Count > 1) { // it's a stack
+                if(s.pieces[0].player) {
+                    redStacksScore++;
+                }
+            }
+        }
+        Debug.Log("redStacksScore: " + redStacksScore);
+        float whiteStacksScore = 0;
+        for (int i = 18; i <= 23; i++) // white base
+        {
+            Debug.Log(i);
+            Slot s = Manager.instance.slots[i];
+            if(s.pieces.Count > 1) { // it's a stack
+                if(!s.pieces[0].player) {
+                    whiteStacksScore++;
+                }
+            }
+        }
+        Debug.Log("whiteStacksScore: " + whiteStacksScore);
+        overallScore += redStacksScore;
+        overallScore -= whiteStacksScore;
 
         return overallScore;
     }
@@ -269,6 +297,29 @@ public class Bot : MonoBehaviour
             else
                 overallScore -= pieceValue; // white
         }
+        // more: score based on how many stacks each player has in their base
+        float redStacksScore = 0;
+        for (int i = 0; i <= 6; i++) // red base
+        {
+            SlotAbstract s = state.slots[i];
+            if(s.pieces.Count > 1) { // it's a stack
+                if(s.pieces[0].player) {
+                    redStacksScore++;
+                }
+            }
+        }
+        float whiteStacksScore = 0;
+        for (int i = 18; i <= 23; i++) // white base
+        {
+            SlotAbstract s = state.slots[i];
+            if(s.pieces.Count > 1) { // it's a stack
+                if(!s.pieces[0].player) {
+                    whiteStacksScore++;
+                }
+            }
+        }
+        overallScore += redStacksScore;
+        overallScore -= whiteStacksScore;
 
         return overallScore;
     }

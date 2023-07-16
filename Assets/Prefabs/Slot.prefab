@@ -87,6 +87,7 @@ GameObject:
   - component: {fileID: 4522733381971957047}
   - component: {fileID: 4522733381971957041}
   - component: {fileID: 4522733381971957040}
+  - component: {fileID: 1142308557962055620}
   m_Layer: 5
   m_Name: Pieces
   m_TagString: Untagged
@@ -137,17 +138,30 @@ MonoBehaviour:
   m_Padding:
     m_Left: 0
     m_Right: 0
-    m_Top: 0
+    m_Top: -50
     m_Bottom: 0
   m_ChildAlignment: 7
-  m_Spacing: -10
+  m_Spacing: -100
   m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
+  m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 0
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1142308557962055620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4522733381971957044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 234988e613eeda942a3fad1fe9f0678e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  layoutGroup: {fileID: 4522733381971957040}
 --- !u!1 &4522733382217218002
 GameObject:
   m_ObjectHideFlags: 0
@@ -202,6 +216,7 @@ MonoBehaviour:
   index: 0
   pieces: []
   piecesParent: {fileID: 0}
+  highlight: {fileID: 0}
 --- !u!1 &4522733382245783356
 GameObject:
   m_ObjectHideFlags: 0

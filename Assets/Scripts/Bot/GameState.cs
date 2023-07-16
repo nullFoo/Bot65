@@ -321,7 +321,6 @@ public class GameState
         foreach(PieceAbstract piece in allPieces) {
             if(piece.player == _player) {
                 List<Move> movesForThisPiece = piece.LegalMoves();
-                Debug.Log("piece at " + piece.slot.index + " has " + movesForThisPiece.Count + " legal moves");
                 if(movesForThisPiece.Count > 0) {
                     moves.AddRange(movesForThisPiece);
                 }
