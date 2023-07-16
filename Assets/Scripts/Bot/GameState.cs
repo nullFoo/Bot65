@@ -140,8 +140,6 @@ public class GameState
                     }
                 }
 
-                Debug.Log("============== piece on slot " + slot.index);
-
                 if(canOut) {
                     bool legalOut = false;
                     // todo: when less than dice roll, but no occupied slots higher - could loop up from current slot index
@@ -159,7 +157,6 @@ public class GameState
                                         }
                                     }
                                 }
-                                Debug.Log(anyFound);
                                 legalOut = !anyFound; // if there aren't, we can get this piece out
                             }
                         }
