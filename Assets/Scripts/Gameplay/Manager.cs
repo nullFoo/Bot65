@@ -125,6 +125,8 @@ public class Manager : MonoBehaviour
     }
 
     public void PieceMoved() {
+        Debug.Log(player1Out.Count);
+        Debug.Log(player2Out.Count);
         if(player1Out.Count >= 15) {
             // white wins
             Debug.Log("white wins");
@@ -300,7 +302,6 @@ public class Manager : MonoBehaviour
         {
             Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
             piece.player = false;
-            piece.isOut = true;
             slots[24].AddPiece(piece);
             player1Out.Add(piece);
         }
@@ -309,7 +310,6 @@ public class Manager : MonoBehaviour
         {
             Piece piece = Instantiate(piecePrefab).GetComponent<Piece>();
             piece.player = true;
-            piece.isOut = true;
             slots[25].AddPiece(piece);
             player1Out.Add(piece);
         }

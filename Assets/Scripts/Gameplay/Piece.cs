@@ -24,7 +24,11 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
 
     public Slot slot;
 
-    public bool isOut;
+    public bool isOut {
+        get {
+            return slot.index > 999;
+        }
+    }
     public bool isCaptured;
 
     public bool inBase {
@@ -115,21 +119,7 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                 }
             }
 
-            if(isCaptured) {
-                isCaptured = false;
-                Manager.instance.player1Captured.Remove(this);
-                Manager.instance.player2Captured.Remove(this);
-            }
-
-            if(closestSlot.index > 900) { // the out slot
-                isOut = true;
-                if(player)
-                    Manager.instance.player2Out.Add(this);
-                else
-                    Manager.instance.player1Out.Add(this);
-            }
-
-            closestSlot.AddPiece(this);
+            MoveTo(closestSlot);
         }
         
         // if not a legal move, go back to starting slot
@@ -145,6 +135,32 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
             if(newSlot.pieces[0].player != this.player) {
                 Manager.instance.CapturePiece(newSlot.pieces[0]);
             }
+        }
+
+        if(newSlot == Manager.instance.whiteCaptured && newSlot == Manager.instance.redCaptured) {
+            isCaptured = true;
+            if(player)
+                if(!Manager.instance.player2Captured.Contains(this))
+                    Manager.instance.player2Captured.Add(this);
+            else
+                if(!Manager.instance.player1Captured.Contains(this))
+                    Manager.instance.player1Captured.Add(this);
+        }
+        else {
+            if(isCaptured) {
+                isCaptured = false;
+                Manager.instance.player1Captured.Remove(this);
+                Manager.instance.player2Captured.Remove(this);
+            }
+        }
+
+        if(isOut) {
+            if(player)
+                if(!Manager.instance.player2Out.Contains(this))
+                    Manager.instance.player2Out.Add(this);
+            else
+                if(!Manager.instance.player1Out.Contains(this))
+                    Manager.instance.player1Out.Add(this);
         }
 
         newSlot.AddPiece(this);
@@ -210,21 +226,21 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                 bool legalOut = false;
                 // todo: when less than dice roll, but no occupied slots higher - could loop up from current slot index
                 if(player) {
-                    legalOut = slot.index == -diceRoll;
+                    legalOut = slot.index + 1 == -diceRoll; // the + 1 is because slot indices start at 0
                     if(!legalOut) {
                         if(-diceRoll > slot.index) {
-                            Debug.Log((-diceRoll) + " > " + slot.index);
                             // check if there's any pieces above us
+                            bool anyFound = false;
                             for (int i = slot.index + 1; i <= 6; i++)
                             {
-                                Debug.Log("checking" + i);
                                 if(Manager.instance.slots[i].pieces.Count > 0) {
                                     if(Manager.instance.slots[i].pieces[0].player == this.player) {
+                                        anyFound = true;
                                         break;
                                     }
                                 }
                             }
-                            legalOut = true; // if there aren't, we can get this piece out
+                            legalOut = !anyFound; // if there aren't, we can get this piece out
                         }
                     }
                     
@@ -233,24 +249,18 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                     legalOut = slot.index - 24 == -diceRoll;
                     if(!legalOut) {
                         if(-diceRoll < slot.index - 24) {
-                            Debug.Log((-diceRoll) + " < " + (slot.index - 24));
-
                             // check if there's any pieces above us
                             bool arePieces = false;
                             Debug.Log(slot.index - 1);
                             for (int i = slot.index - 1; i >= 18; i--)
                             {
-                                Debug.Log("checking" + i);
                                 if(Manager.instance.slots[i].pieces.Count > 0) {
                                     if(Manager.instance.slots[i].pieces[0].player == this.player) {
-                                        Debug.Log(i + "has our pieces on it");
                                         arePieces = true;
-                                        break;
                                     }
                                 }
                             }
                             legalOut = !arePieces; // if there aren't, we can get this piece out
-                            Debug.Log(legalOut);
                     }
 
                     }

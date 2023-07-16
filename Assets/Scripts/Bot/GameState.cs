@@ -41,7 +41,11 @@ public class GameState
     public class PieceAbstract {
         public bool player;
         public SlotAbstract slot;
-        public bool isOut;
+        public bool isOut {
+            get {
+                return slot.index > 999;
+            }
+        }
         public bool isCaptured;
         
         public bool inBase {
@@ -72,7 +76,6 @@ public class GameState
 
         public PieceAbstract(Piece template, GameState gameState, SlotAbstract slot = null) { // create this abstract class from a piece game object
             this.player = template.player;
-            this.isOut = template.isOut;
             this.isCaptured = template.isCaptured;
 
             if(slot == null) {
@@ -87,7 +90,6 @@ public class GameState
 
         public PieceAbstract(PieceAbstract copy, GameState gameState, SlotAbstract slot = null) {
             this.player = copy.player;
-            this.isOut = copy.isOut;
             this.isCaptured = copy.isCaptured;
 
             if(slot == null) {
@@ -138,25 +140,31 @@ public class GameState
                     }
                 }
 
+                Debug.Log("============== piece on slot " + slot.index);
+
                 if(canOut) {
                     bool legalOut = false;
                     // todo: when less than dice roll, but no occupied slots higher - could loop up from current slot index
                     if(player) {
-                        legalOut = slot.index == -diceRoll;
+                        legalOut = slot.index + 1 == -diceRoll; // the + 1 is because slot indices start at 0
+                        Debug.Log("legal out " + legalOut);
                         if(!legalOut) {
                             if(-diceRoll > slot.index) {
                                 Debug.Log((-diceRoll) + " > " + slot.index);
                                 // check if there's any pieces above us
+                                bool anyFound = false;
                                 for (int i = slot.index + 1; i <= 6; i++)
                                 {
                                     Debug.Log("checking" + i);
                                     if(gameState.slots[i].pieces.Count > 0) {
                                         if(gameState.slots[i].pieces[0].player == this.player) {
-                                            break;
+                                            Debug.Log(i + " has pieces, can't out");
+                                            anyFound = true;
                                         }
                                     }
                                 }
-                                legalOut = true; // if there aren't, we can get this piece out
+                                Debug.Log(anyFound);
+                                legalOut = !anyFound; // if there aren't, we can get this piece out
                             }
                         }
                         
@@ -165,24 +173,19 @@ public class GameState
                         legalOut = slot.index - 24 == -diceRoll;
                         if(!legalOut) {
                             if(-diceRoll < slot.index - 24) {
-                                Debug.Log((-diceRoll) + " < " + (slot.index - 24));
-
                                 // check if there's any pieces above us
-                                bool arePieces = false;
+                                bool anyFound = false;
                                 Debug.Log(slot.index - 1);
                                 for (int i = slot.index - 1; i >= 18; i--)
                                 {
-                                    Debug.Log("checking" + i);
                                     if(gameState.slots[i].pieces.Count > 0) {
                                         if(gameState.slots[i].pieces[0].player == this.player) {
-                                            Debug.Log(i + "has our pieces on it");
-                                            arePieces = true;
+                                            anyFound = true;
                                             break;
                                         }
                                     }
                                 }
-                                legalOut = !arePieces; // if there aren't, we can get this piece out
-                                Debug.Log(legalOut);
+                                legalOut = !anyFound; // if there aren't, we can get this piece out
                         }
 
                         }

@@ -9,6 +9,8 @@ public class Bot : MonoBehaviour
 {
     public static Bot instance;
 
+    public bool isPlayingRed = true;
+
     [SerializeField] TextMeshProUGUI debugTextEvaluation;
 
     float[] stackPositionScores = new float[]
@@ -24,6 +26,7 @@ public class Bot : MonoBehaviour
 
         // float evaluation = EvaluateGameState(currentGameState, true);
         float evaluation = EvaluateGameState(); // use this function instead, so it updates debug texts properly
+
         string evalString = evaluation.ToString("F2");
 
         string whosWinning = (evaluation < 0 ? "White" : "Red") + " is winning.";
@@ -39,8 +42,10 @@ public class Bot : MonoBehaviour
     }
 
     public void DebugFuncTemp() { // note: currently, it only does the best singular move. needs to be looking for the best *combination* of moves with the available dice
+        isPlayingRed = Manager.instance.whoseTurn;
+
         GameState currentGameState = GameState.GameStateFromCurrentBoard();
-        List<Move> legalMoves = currentGameState.GetAllLegalMoves(true);
+        List<Move> legalMoves = currentGameState.GetAllLegalMoves(isPlayingRed);
 
         if(legalMoves.Count == 0) {
             // pass turn
@@ -51,6 +56,9 @@ public class Bot : MonoBehaviour
         float bestEval = -1000;
         foreach(Move m in legalMoves) {
             float eval = EvaluateGameState(m.after);
+            if(!isPlayingRed)
+                eval = -eval;
+
             if(eval > bestEval) {
                 bestEval = eval;
                 best = m;
