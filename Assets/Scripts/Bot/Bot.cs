@@ -45,6 +45,9 @@ public class Bot : MonoBehaviour
     }
 
     public void BotsTurn() {
+        if(Manager.instance.whoseTurn != isPlayingRed) // if this function has somehow been called when it isn't the bot's turn, ignore
+            return;
+        
         GameState currentGameState = GameState.GameStateFromCurrentBoard();
         List<Move> legalMoves = currentGameState.GetAllLegalMoves(isPlayingRed);
 
@@ -87,14 +90,20 @@ public class Bot : MonoBehaviour
         Invoke("PlayMove", 0.5f);
     }
     public void PlayMove() {
-        if(Manager.instance.diceRolls.Count == 0 || movesToPlay.Count == 0)
+        if(Manager.instance.whoseTurn != isPlayingRed)
+            return;
+        if(Manager.instance.diceRolls.Count == 0)
             return;
 
         if(hasCombo) {
+            if(movesToPlay.Count == 0)
+                return;
             DoMoveInGame(movesToPlay[0]);
             movesToPlay.RemoveAt(0);
         }
         else {
+            Debug.Log("no combo, doing best singular move");
+            Debug.Log(Manager.instance.diceRolls.Count);
             GameState currentGameState = GameState.GameStateFromCurrentBoard();
             List<Move> legalMoves = currentGameState.GetAllLegalMoves(isPlayingRed);
             
@@ -117,12 +126,13 @@ public class Bot : MonoBehaviour
                 }
             }
 
+            DoMoveInGame(best);
         }
 
         Invoke("PlayMove", 0.5f);
     }
 
-    public void DebugFuncTemp() {
+    public void DebugFuncTemp() { // called from the "bot" button in debug ui
         BotsTurn();
         return;
         
@@ -214,7 +224,6 @@ public class Bot : MonoBehaviour
 
         Manager.instance.diceRolls.Remove(Mathf.Abs(move.moveNumber));
         piece.MoveTo(slot);
-
     }
 
     public struct Move {
@@ -237,10 +246,7 @@ public class Bot : MonoBehaviour
         }
     }
 
-    int recurse = 0; // temporary, to avoid freezing until I know this works properly
     List<List<Move>> GetAllMoveCombinations(GameState startState) {
-        recurse = 0;
-        
         List<List<Move>> allCombinations = new List<List<Move>>(); // this will be referenced, not copied, allowing us to add to it from the recursive function
         GenerateMoveCombination(startState, new List<Move>(), allCombinations);
         return allCombinations;
@@ -250,12 +256,6 @@ public class Bot : MonoBehaviour
         // Debug.Log(gameState.diceRolls.Count);
         if(gameState.diceRolls.Count == 0) { // gone through all dice rolls, combination done
             allCombinations.Add(currentCombination); // add it to the overall list
-            return;
-        }
-
-        recurse++;
-        if(recurse > 5000) {
-            Debug.Log("too much recursion, something maybe went wrong");
             return;
         }
 
