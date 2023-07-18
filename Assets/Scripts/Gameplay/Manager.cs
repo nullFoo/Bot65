@@ -198,8 +198,9 @@ public class Manager : MonoBehaviour
         {
             if(p.player == whoseTurn) {
                 if(p.LegalMoves().Count > 0) {
-                    // do some graphical thing
-                    p.slot.Highlight(true);
+                    if(!(playingAgainstBot && whoseTurn == Bot.instance.isPlayingRed)) { // don't highlight bot's moves, it's confusing
+                        p.slot.Highlight(true);
+                    }
                     legalMoves++;
                     continue;
                 }
