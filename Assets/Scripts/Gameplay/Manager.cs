@@ -112,7 +112,6 @@ public class Manager : MonoBehaviour
     }
 
     public void NextTurn() {
-        Debug.Log("next turn");
         passButton.SetActive(false);
         
         // update turn and roll the dice

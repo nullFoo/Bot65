@@ -49,8 +49,9 @@ public class Bot : MonoBehaviour
         List<Move> legalMoves = currentGameState.GetAllLegalMoves(isPlayingRed);
 
         if(legalMoves.Count == 0) {
-            // pass turn
             Debug.Log("no legal moves");
+            Invoke("PlayMove", 0.5f);
+            hasCombo = false;
             return;
         }
 
@@ -63,8 +64,6 @@ public class Bot : MonoBehaviour
             Debug.Log("something failed with checking move combos this turn, just doing best individual moves instead");
             
             hasCombo = false;
-
-            return;
         }
         else {
             List<Move> best = moveCombos[0];
@@ -101,14 +100,13 @@ public class Bot : MonoBehaviour
             
             if(legalMoves.Count == 0) {
                 Debug.Log("no legal moves");
+                Manager.instance.NextTurn(); // pass turn
                 return;
             }
 
             Move best = legalMoves[0];
             float bestEval = -1000;
             foreach(Move m in legalMoves) {
-                // if(m.Count == 0)
-                //     continue;
                 float eval = EvaluateGameState(m.after); // game state after the end of the combination
                 if(!isPlayingRed)
                     eval = -eval; // since the evaluation is positive for red and negative for white, flip that if we are white

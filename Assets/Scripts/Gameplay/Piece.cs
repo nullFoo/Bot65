@@ -236,7 +236,6 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                         if(-diceRoll < slot.index - 24) {
                             // check if there's any pieces above us
                             bool arePieces = false;
-                            Debug.Log(slot.index - 1);
                             for (int i = slot.index - 1; i >= 18; i--)
                             {
                                 if(Manager.instance.slots[i].pieces.Count > 0) {
@@ -328,24 +327,18 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                     legalOut = slot.index - 24 == -diceRoll;
                     if(!legalOut) {
                         if(-diceRoll < slot.index - 24) {
-                            Debug.Log((-diceRoll) + " < " + (slot.index - 24));
-
                             // check if there's any pieces above us
                             bool arePieces = false;
-                            Debug.Log(slot.index - 1);
                             for (int i = slot.index - 1; i >= 18; i--)
                             {
-                                Debug.Log("checking" + i);
                                 if(Manager.instance.slots[i].pieces.Count > 0) {
                                     if(Manager.instance.slots[i].pieces[0].player == this.player) {
-                                        Debug.Log(i + "has our pieces on it");
                                         arePieces = true;
                                         break;
                                     }
                                 }
                             }
                             legalOut = !arePieces; // if there aren't, we can get this piece out
-                            Debug.Log(legalOut);
                     }
 
                     }
