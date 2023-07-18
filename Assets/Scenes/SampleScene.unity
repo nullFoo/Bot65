@@ -4877,6 +4877,7 @@ MonoBehaviour:
   passButton: {fileID: 221252258}
   startGameButton: {fileID: 1799801319}
   playingAgainstBot: 1
+  botToggleButton: {fileID: 1265528101}
   game: 0
   input: {fileID: 1207420696}
 --- !u!4 &944719380
