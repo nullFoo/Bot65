@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using static GameState;
 
@@ -19,6 +20,9 @@ public class Bot : MonoBehaviour
 
     List<Move> movesToPlay = new List<Move>(); // the list of calculated moves, for the bot to play through slowly instead of instantly so the player can see what's going on
     bool hasCombo; // if false, we're doing individual moves
+
+    [SerializeField] Slider botPlaySpeed;
+    float playDelay = 0.5f;
 
     void Awake() {
         instance = this;
@@ -45,6 +49,8 @@ public class Bot : MonoBehaviour
     }
 
     public void BotsTurn() {
+        playDelay = 2 / botPlaySpeed.value;
+
         if(Manager.instance.whoseTurn != isPlayingRed) // if this function has somehow been called when it isn't the bot's turn, ignore
             return;
         
@@ -53,7 +59,7 @@ public class Bot : MonoBehaviour
 
         if(legalMoves.Count == 0) {
             Debug.Log("no legal moves");
-            Invoke("PlayMove", 0.5f);
+            Invoke("PlayMove", playDelay);
             hasCombo = false;
             return;
         }
@@ -87,7 +93,7 @@ public class Bot : MonoBehaviour
             movesToPlay.AddRange(best);
         }
 
-        Invoke("PlayMove", 0.5f);
+        Invoke("PlayMove", playDelay);
     }
     public void PlayMove() {
         if(Manager.instance.whoseTurn != isPlayingRed)
@@ -129,7 +135,7 @@ public class Bot : MonoBehaviour
             DoMoveInGame(best);
         }
 
-        Invoke("PlayMove", 0.5f);
+        Invoke("PlayMove", playDelay);
     }
 
     public void DebugFuncTemp() { // called from the "bot" button in debug ui
