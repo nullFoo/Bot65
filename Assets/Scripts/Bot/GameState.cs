@@ -104,6 +104,7 @@ public class GameState
 
         public List<Move> LegalMoves() {
             List<Move> moves = new List<Move>();
+            List<SlotAbstract> slotsWithMoves = new List<SlotAbstract>();
 
             List<PieceAbstract> capturedCheck = this.player ? gameState.redPiecesCaptured : gameState.whitePiecesCaptured;
             if(capturedCheck.Count > 0 && !isCaptured) // if this player has a piece captured and it's not this one, we can't move
@@ -128,15 +129,24 @@ public class GameState
                     if(s.pieces.Count > 0) { // check for other player's pieces on that slot
                         if(s.pieces[0].player != this.player) {
                             if(s.pieces.Count <= 1) { // if there's more than 1, we can't move there
-                                moves.Add(new Move(gameState, this, s, diceRoll)); // we can move to this slot and capture
+                                if(!slotsWithMoves.Contains(s)) {
+                                    slotsWithMoves.Add(s);
+                                    moves.Add(new Move(gameState, this, s, diceRoll)); // we can move to this slot and capture
+                                }
                             }
                         }
                         else {
-                            moves.Add(new Move(gameState, this, s, diceRoll)); // there's pieces on there but they belong to us so we can move there
+                            if(!slotsWithMoves.Contains(s)) {
+                                slotsWithMoves.Add(s);
+                                moves.Add(new Move(gameState, this, s, diceRoll)); // there's pieces on there but they belong to us so we can move there
+                            }
                         }
                     }
                     else {
-                        moves.Add(new Move(gameState, this, s, diceRoll)); // it's a free slot we can move to
+                        if(!slotsWithMoves.Contains(s)) {
+                            slotsWithMoves.Add(s);
+                            moves.Add(new Move(gameState, this, s, diceRoll)); // it's a free slot we can move to
+                        }
                     }
                 }
 
@@ -186,7 +196,10 @@ public class GameState
 
                     if(legalOut) {
                         SlotAbstract s = player ? gameState.outSlotRed : gameState.outSlotWhite;
-                        moves.Add(new Move(gameState, this, s, diceRoll));
+                        if(!slotsWithMoves.Contains(s)) {
+                            slotsWithMoves.Add(s);
+                            moves.Add(new Move(gameState, this, s, diceRoll));
+                        }
                     }
                 }
             }

@@ -55,23 +55,50 @@ public class Bot : MonoBehaviour
 
         List<List<Move>> moveCombos = GetAllMoveCombinations(currentGameState);
 
-        List<Move> best = moveCombos[0];
-        float bestEval = -1000;
-        foreach(List<Move> m in moveCombos) {
-            float eval = EvaluateGameState(m[m.Count - 1].after); // game state after the end of the combination
-            if(!isPlayingRed)
-                eval = -eval; // since the evaluation is positive for red and negative for white, flip that if we are white
+        if(moveCombos.Count == 0) {
+            // something failed with the move combo checking, just do best individual move instead
+            Debug.Log("something failed with checking move combos, just doing best individual moves instead");
+            Move best = legalMoves[0];
+            float bestEval = -1000;
+            foreach(Move m in legalMoves) {
+                // if(m.Count == 0)
+                //     continue;
+                float eval = EvaluateGameState(m.after); // game state after the end of the combination
+                if(!isPlayingRed)
+                    eval = -eval; // since the evaluation is positive for red and negative for white, flip that if we are white
 
-            if(eval > bestEval) {
-                bestEval = eval;
-                best = m;
+                if(eval > bestEval) {
+                    bestEval = eval;
+                    best = m;
+                }
             }
+
+            DoMoveInGame(best);
+
+            return;
+        }
+        else {
+            List<Move> best = moveCombos[0];
+            float bestEval = -1000;
+            foreach(List<Move> m in moveCombos) {
+                // if(m.Count == 0)
+                //     continue;
+                float eval = EvaluateGameState(m[m.Count - 1].after); // game state after the end of the combination
+                if(!isPlayingRed)
+                    eval = -eval; // since the evaluation is positive for red and negative for white, flip that if we are white
+
+                if(eval > bestEval) {
+                    bestEval = eval;
+                    best = m;
+                }
+            }
+
+            DoMovesInGame(best);
         }
 
-        DoMovesInGame(best);
     }
 
-    public void DoMovesInGame(List<Move> moveCombo) { // find the actual Piece and Slot objects from the move and do it
+    public void DoMovesInGame(List<Move> moveCombo) { // find the actual Piece and Slot objects from the move combo and do it
         if(moveCombo.Count == 0 || moveCombo.Count > 4) {
             Debug.Log("Something probably went wrong with the move combo checking, combination has a count of " + moveCombo.Count);
             return;
@@ -89,6 +116,21 @@ public class Bot : MonoBehaviour
             Manager.instance.diceRolls.Remove(Mathf.Abs(move.moveNumber));
             piece.MoveTo(slot);
         }
+    }
+    public void DoMoveInGame(Move move) { // find the actual Piece and Slot objects from the move and do it
+
+        Slot slot = Manager.instance.slots.First(s => s.index == move.targetSlot.index);
+        if(slot == null) {
+            return;
+        }
+        Piece piece = Manager.instance.allPieces.First(p => p.slot.index == move.piece.slot.index); // pieces on the same slot are functionally identical, so just the first one that's on the same slot
+        if(piece == null) {
+            return;
+        }
+
+        Manager.instance.diceRolls.Remove(Mathf.Abs(move.moveNumber));
+        piece.MoveTo(slot);
+
     }
 
     public struct Move {
@@ -121,7 +163,7 @@ public class Bot : MonoBehaviour
     }
 
     void GenerateMoveCombination(GameState gameState, List<Move> currentCombination, List<List<Move>> allCombinations) {
-        Debug.Log(gameState.diceRolls.Count);
+        // Debug.Log(gameState.diceRolls.Count);
         if(gameState.diceRolls.Count == 0) { // gone through all dice rolls, combination done
             allCombinations.Add(currentCombination); // add it to the overall list
             return;
@@ -139,10 +181,20 @@ public class Bot : MonoBehaviour
                 Debug.Log("something's wrong");
                 return;
             }
+
             List<Move> current = new List<Move>(currentCombination); // make a copy so it doesn't affect the other moves
             current.Add(move); // add this move to the current combinations
+
+            if(move.after.diceRolls.Count == 0) { // gone through all dice rolls, combination done
+                allCombinations.Add(current); // add it to the overall list
+                continue;
+            }
+
             GenerateMoveCombination(move.after, current, allCombinations); // continue the recursive search
         }
+
+        // if there were no legal moves or we otherwise somehow reached the end of the function, just add the combination to the list
+        // allCombinations.Add(currentCombination);
     }
     
     // the bot will be playing red
