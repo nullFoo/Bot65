@@ -15,7 +15,7 @@ public class Bot : MonoBehaviour
     [SerializeField] TextMeshProUGUI debugTextEvaluation;
 
     float[] stackPositionScores = new float[]
-    {10, 9.8f, 9.6f, 9.4f, 9.2f, 9f, 8, 4, 3, 2, 2, 2, 2, 2, 2, 2, 2, 5, 0, -2, -2, -1, 0, 1};
+    {10, 9.8f, 9.6f, 9.4f, 9.2f, 9f, 8, 4, 3, 2, 2, 2, 2, 2, 2, 2, 2, 5, 0, -2, -2, -1, -1, -1};
     // todo: different scores at different points in the game (like when you're in the base)
 
     List<Move> movesToPlay = new List<Move>(); // the list of calculated moves, for the bot to play through slowly instead of instantly so the player can see what's going on
@@ -340,7 +340,7 @@ public class Bot : MonoBehaviour
         
 
         if(piece.isCaptured) { // captured
-            positionValue = -2f;
+            positionValue = -2.5f;
         }
         else {
             // score based on proximity to end
@@ -514,7 +514,7 @@ public class Bot : MonoBehaviour
         
 
         if(piece.isCaptured) { // captured
-            positionValue = -2f;
+            positionValue = -2.5f;
         }
         else {
             // score based on proximity to end
