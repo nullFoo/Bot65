@@ -43,6 +43,9 @@ public class Manager : MonoBehaviour
     [SerializeField] GameObject passButton;
     [SerializeField] GameObject startGameButton;
 
+    public bool playingAgainstBot = true; // if false, playing local multiplayer or against yourself
+    [SerializeField] Toggle botToggleButton;
+
     public bool game = false; // will be false before start and after finish
 
     public bool WhiteCanOut {
@@ -124,12 +127,14 @@ public class Manager : MonoBehaviour
         // update things
         PieceMoved();
 
-        if(whoseTurn == Bot.instance.isPlayingRed) {
-            Bot.instance.BotsTurn();
+        if(playingAgainstBot) {
+            if(whoseTurn == Bot.instance.isPlayingRed) {
+                Bot.instance.BotsTurn();
+            }
         }
     }
 
-    public void PieceMoved() {
+    public void PieceMoved() { // update things
         player1Out = new List<Piece>();
         player2Out = new List<Piece>();
         player1Captured = new List<Piece>();
@@ -182,6 +187,8 @@ public class Manager : MonoBehaviour
         }
 
         Bot.instance.UpdateDebugText();
+
+        playingAgainstBot = botToggleButton.isOn;
     }
 
     public void HighlightLegalMoves() {

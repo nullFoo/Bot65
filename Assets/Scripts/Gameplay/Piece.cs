@@ -68,6 +68,8 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
     {
         if(Manager.instance.whoseTurn != player || !Manager.instance.game) // can't move pieces if it's not our turn
             return;
+        if(Manager.instance.playingAgainstBot && player) // if playing against the bot, can't move the bot's pieces
+            return;
 
         Manager.instance.ClearHighlights();
         foreach((Slot, int) s in LegalMoves()) {
