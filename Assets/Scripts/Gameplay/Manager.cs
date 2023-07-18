@@ -109,6 +109,7 @@ public class Manager : MonoBehaviour
     }
 
     public void NextTurn() {
+        Debug.Log("next turn");
         passButton.SetActive(false);
         
         // update turn and roll the dice
@@ -122,6 +123,10 @@ public class Manager : MonoBehaviour
         
         // update things
         PieceMoved();
+
+        if(whoseTurn == Bot.instance.isPlayingRed) {
+            Bot.instance.BotsTurn();
+        }
     }
 
     public void PieceMoved() {

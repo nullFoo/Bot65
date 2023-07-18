@@ -17,6 +17,9 @@ public class Bot : MonoBehaviour
     {10, 9.8f, 9.6f, 9.4f, 9.2f, 9f, 8, 4, 3, 2, 2, 2, 2, 2, 2, 2, 2, 5, 0, -2, -2, -1, 0, 1};
     // todo: different scores at different points in the game (like when you're in the base)
 
+    List<Move> movesToPlay = new List<Move>(); // the list of calculated moves, for the bot to play through slowly instead of instantly so the player can see what's going on
+    bool hasCombo; // if false, we're doing individual moves
+
     void Awake() {
         instance = this;
     }
@@ -41,7 +44,90 @@ public class Bot : MonoBehaviour
         debugTextEvaluation.color = colour;
     }
 
-    public void DebugFuncTemp() { // note: currently, it only does the best singular move. needs to be looking for the best *combination* of moves with the available dice
+    public void BotsTurn() {
+        GameState currentGameState = GameState.GameStateFromCurrentBoard();
+        List<Move> legalMoves = currentGameState.GetAllLegalMoves(isPlayingRed);
+
+        if(legalMoves.Count == 0) {
+            // pass turn
+            Debug.Log("no legal moves");
+            return;
+        }
+
+        hasCombo = true;
+
+        List<List<Move>> moveCombos = GetAllMoveCombinations(currentGameState);
+
+        if(moveCombos.Count == 0) {
+            // something failed with the move combo checking, just do best individual move instead
+            Debug.Log("something failed with checking move combos this turn, just doing best individual moves instead");
+            
+            hasCombo = false;
+
+            return;
+        }
+        else {
+            List<Move> best = moveCombos[0];
+            float bestEval = -1000;
+            foreach(List<Move> m in moveCombos) {
+                // if(m.Count == 0)
+                //     continue;
+                float eval = EvaluateGameState(m[m.Count - 1].after); // game state after the end of the combination
+                if(!isPlayingRed)
+                    eval = -eval; // since the evaluation is positive for red and negative for white, flip that if we are white
+
+                if(eval > bestEval) {
+                    bestEval = eval;
+                    best = m;
+                }
+            }
+
+            movesToPlay.AddRange(best);
+        }
+
+        Invoke("PlayMove", 0.5f);
+    }
+    public void PlayMove() {
+        if(Manager.instance.diceRolls.Count == 0 || movesToPlay.Count == 0)
+            return;
+
+        if(hasCombo) {
+            DoMoveInGame(movesToPlay[0]);
+            movesToPlay.RemoveAt(0);
+        }
+        else {
+            GameState currentGameState = GameState.GameStateFromCurrentBoard();
+            List<Move> legalMoves = currentGameState.GetAllLegalMoves(isPlayingRed);
+            
+            if(legalMoves.Count == 0) {
+                Debug.Log("no legal moves");
+                return;
+            }
+
+            Move best = legalMoves[0];
+            float bestEval = -1000;
+            foreach(Move m in legalMoves) {
+                // if(m.Count == 0)
+                //     continue;
+                float eval = EvaluateGameState(m.after); // game state after the end of the combination
+                if(!isPlayingRed)
+                    eval = -eval; // since the evaluation is positive for red and negative for white, flip that if we are white
+
+                if(eval > bestEval) {
+                    bestEval = eval;
+                    best = m;
+                }
+            }
+
+        }
+
+        Invoke("PlayMove", 0.5f);
+    }
+
+    public void DebugFuncTemp() {
+        BotsTurn();
+        return;
+        
         isPlayingRed = Manager.instance.whoseTurn;
 
         GameState currentGameState = GameState.GameStateFromCurrentBoard();
@@ -171,7 +257,7 @@ public class Bot : MonoBehaviour
 
         recurse++;
         if(recurse > 5000) {
-            Debug.Log("too much recursion, something maybe went wrong"); // It likely hasn't, actually. However, this function needs a lot of optimizing - if you roll a double, there are 4 items in diceRolls, meaning potentially up to 15^4 (50,625) possible move combinations
+            Debug.Log("too much recursion, something maybe went wrong");
             return;
         }
 
