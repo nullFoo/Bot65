@@ -40,7 +40,7 @@ public class Piece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHan
                 return false;
 
             if(player)
-                return slot.index <= 6;
+                return slot.index <= 5;
             else
                 return slot.index >= 18;
         }
