@@ -53,12 +53,14 @@ public class Bot : MonoBehaviour
             return;
         }
 
-        Move best = legalMoves[0];
+        List<List<Move>> moveCombos = GetAllMoveCombinations(currentGameState);
+
+        List<Move> best = moveCombos[0];
         float bestEval = -1000;
-        foreach(Move m in legalMoves) {
-            float eval = EvaluateGameState(m.after);
+        foreach(List<Move> m in moveCombos) {
+            float eval = EvaluateGameState(m[m.Count - 1].after); // game state after the end of the combination
             if(!isPlayingRed)
-                eval = -eval;
+                eval = -eval; // since the evaluation is positive for red and negative for white, flip that if we are white
 
             if(eval > bestEval) {
                 bestEval = eval;
@@ -66,21 +68,27 @@ public class Bot : MonoBehaviour
             }
         }
 
-        DoMoveInGame(best);
+        DoMovesInGame(best);
     }
 
-    public void DoMoveInGame(Move move) { // find the actual Piece and Slot objects from the move and do it
-        Slot slot = Manager.instance.slots.First(s => s.index == move.targetSlot.index);
-        if(slot == null) {
+    public void DoMovesInGame(List<Move> moveCombo) { // find the actual Piece and Slot objects from the move and do it
+        if(moveCombo.Count == 0 || moveCombo.Count > 4) {
+            Debug.Log("Something probably went wrong with the move combo checking, combination has a count of " + moveCombo.Count);
             return;
         }
-        Piece piece = Manager.instance.allPieces.First(p => p.slot.index == move.piece.slot.index); // pieces on the same slot are functionally identical, so just the first one that's on the same slot
-        if(piece == null) {
-            return;
-        }
+        foreach(Move move in moveCombo) {
+            Slot slot = Manager.instance.slots.First(s => s.index == move.targetSlot.index);
+            if(slot == null) {
+                return;
+            }
+            Piece piece = Manager.instance.allPieces.First(p => p.slot.index == move.piece.slot.index); // pieces on the same slot are functionally identical, so just the first one that's on the same slot
+            if(piece == null) {
+                return;
+            }
 
-        Manager.instance.diceRolls.Remove(Mathf.Abs(move.moveNumber));
-        piece.MoveTo(slot);
+            Manager.instance.diceRolls.Remove(Mathf.Abs(move.moveNumber));
+            piece.MoveTo(slot);
+        }
     }
 
     public struct Move {
@@ -99,10 +107,44 @@ public class Bot : MonoBehaviour
             PieceAbstract newPiece = after.allPieces.First(pi => pi.slot.index == p.slot.index);
             SlotAbstract newSlot = after.slots.First(sl => sl.index == s.index);
             after.MovePiece(newPiece, newSlot);
-            after.diceRolls.Remove(moveNumber);
+            after.diceRolls.Remove(Mathf.Abs(moveNumber));
         }
     }
 
+    int recurse = 0; // temporary, to avoid freezing until I know this works properly
+    List<List<Move>> GetAllMoveCombinations(GameState startState) {
+        recurse = 0;
+        
+        List<List<Move>> allCombinations = new List<List<Move>>(); // this will be referenced, not copied, allowing us to add to it from the recursive function
+        GenerateMoveCombination(startState, new List<Move>(), allCombinations);
+        return allCombinations;
+    }
+
+    void GenerateMoveCombination(GameState gameState, List<Move> currentCombination, List<List<Move>> allCombinations) {
+        Debug.Log(gameState.diceRolls.Count);
+        if(gameState.diceRolls.Count == 0) { // gone through all dice rolls, combination done
+            allCombinations.Add(currentCombination); // add it to the overall list
+            return;
+        }
+
+        recurse++;
+        if(recurse > 5000) {
+            Debug.Log("too much recursion, something maybe went wrong"); // It likely hasn't, actually. However, this function needs a lot of optimizing - if you roll a double, there are 4 items in diceRolls, meaning potentially up to 15^4 (50,625) possible move combinations
+            return;
+        }
+
+        List<Move> legalMoves = new List<Move>(gameState.GetAllLegalMoves(this.isPlayingRed));
+        foreach(Move move in legalMoves) {
+            if(move.after.diceRolls.Count == gameState.diceRolls.Count) {
+                Debug.Log("something's wrong");
+                return;
+            }
+            List<Move> current = new List<Move>(currentCombination); // make a copy so it doesn't affect the other moves
+            current.Add(move); // add this move to the current combinations
+            GenerateMoveCombination(move.after, current, allCombinations); // continue the recursive search
+        }
+    }
+    
     // the bot will be playing red
     public float EvaluateGameState() {        
         float overallScore = 0;
@@ -123,7 +165,6 @@ public class Bot : MonoBehaviour
         float redStacksScore = 0;
         for (int i = 0; i <= 6; i++) // red base
         {
-            Debug.Log(i);
             Slot s = Manager.instance.slots[i];
             if(s.pieces.Count > 1) { // it's a stack
                 if(s.pieces[0].player) {
@@ -131,11 +172,9 @@ public class Bot : MonoBehaviour
                 }
             }
         }
-        Debug.Log("redStacksScore: " + redStacksScore);
         float whiteStacksScore = 0;
         for (int i = 18; i <= 23; i++) // white base
         {
-            Debug.Log(i);
             Slot s = Manager.instance.slots[i];
             if(s.pieces.Count > 1) { // it's a stack
                 if(!s.pieces[0].player) {
@@ -143,7 +182,6 @@ public class Bot : MonoBehaviour
                 }
             }
         }
-        Debug.Log("whiteStacksScore: " + whiteStacksScore);
         overallScore += redStacksScore;
         overallScore -= whiteStacksScore;
 
@@ -255,7 +293,7 @@ public class Bot : MonoBehaviour
         }
 
         if(piece.slot.pieces.Count == 1) { // we are exposed
-            positionValue -= 0.1f;
+            positionValue -= 0.2f;
             float enemyPiecesAheadScore = 0; // score based on enemy pieces that are ahead - especially if they can reach us within 1 dice roll
             for (int i = (d == 1 ? 0 : 23); ((d == 1 ? (i < 23) : (i > 0))); i += d) // loop through all slots ahead of this one
             {
@@ -427,8 +465,8 @@ public class Bot : MonoBehaviour
             positionValue += val;
         }
 
-        if(piece.slot.pieces.Count == 1) { // we are exposed
-            positionValue -= 0.1f;
+        if(piece.slot.pieces.Count == 1 && !piece.isCaptured) { // we are exposed
+            positionValue -= 0.2f;
             float enemyPiecesAheadScore = 0; // score based on enemy pieces that are ahead - especially if they can reach us within 1 dice roll
             for (int i = (d == 1 ? 0 : 23); ((d == 1 ? (i < 23) : (i > 0))); i += d) // loop through all slots ahead of this one
             {

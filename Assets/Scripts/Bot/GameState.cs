@@ -318,6 +318,9 @@ public class GameState
 
     public List<Move> GetAllLegalMoves(bool _player) {
         List<Move> moves = new List<Move>();
+        if(diceRolls.Count == 0)
+            return moves;
+        
         foreach(PieceAbstract piece in allPieces) {
             if(piece.player == _player) {
                 List<Move> movesForThisPiece = piece.LegalMoves();
