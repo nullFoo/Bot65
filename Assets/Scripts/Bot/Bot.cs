@@ -51,6 +51,8 @@ public class Bot : MonoBehaviour
     public void BotsTurn() {
         playDelay = 2 / botPlaySpeed.value;
 
+        movesToPlay = new List<Move>();
+
         if(Manager.instance.whoseTurn != isPlayingRed) // if this function has somehow been called when it isn't the bot's turn, ignore
             return;
         
@@ -435,7 +437,11 @@ public class Bot : MonoBehaviour
         }
 
         if(piece.slot.pieces.Count == 1) { // we are exposed
-            positionValue -= 0.2f;
+            if((piece.player && positionValue > 17) || positionValue < 6) { // in/near enemy base
+                positionValue -= 0.05f; // it's not that big of a risk, we won't get set back far
+            }
+            else
+                positionValue -= 0.2f;
             float enemyPiecesAheadScore = 0; // score based on enemy pieces that are ahead - especially if they can reach us within 1 dice roll
             for (int i = (d == 1 ? 0 : 23); ((d == 1 ? (i < 23) : (i > 0))); i += d) // loop through all slots ahead of this one
             {
@@ -608,7 +614,11 @@ public class Bot : MonoBehaviour
         }
 
         if(piece.slot.pieces.Count == 1 && !piece.isCaptured) { // we are exposed
-            positionValue -= 0.2f;
+            if((piece.player && positionValue > 17) || positionValue < 6) { // in/near enemy base
+                positionValue -= 0.05f; // it's not that big of a risk, we won't get set back far
+            }
+            else
+                positionValue -= 0.2f;
             float enemyPiecesAheadScore = 0; // score based on enemy pieces that are ahead - especially if they can reach us within 1 dice roll
             for (int i = (d == 1 ? 0 : 23); ((d == 1 ? (i < 23) : (i > 0))); i += d) // loop through all slots ahead of this one
             {
