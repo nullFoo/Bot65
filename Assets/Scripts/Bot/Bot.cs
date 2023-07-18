@@ -31,7 +31,7 @@ public class Bot : MonoBehaviour
     public void UpdateDebugText() {
         GameState currentGameState = GameState.GameStateFromCurrentBoard();
 
-        // float evaluation = EvaluateGameState(currentGameState, true);
+        // float throwawayDebug = EvaluateGameState(currentGameState, true);
         float evaluation = EvaluateGameState(); // use this function instead, so it updates debug texts properly
 
         string evalString = evaluation.ToString("F2");
@@ -476,6 +476,8 @@ public class Bot : MonoBehaviour
         float overallScore = 0;
 
         foreach(PieceAbstract p in state.allPieces) {
+            if(isCurrent)
+                Debug.Log(p.isCaptured);
             float pieceValue = EvaluatePiece(p, state);
 
             if(p.player)
@@ -520,7 +522,7 @@ public class Bot : MonoBehaviour
         
 
         if(piece.isCaptured) { // captured
-            positionValue = -2.5f;
+            positionValue = -2.5f; // 500 is temporary for debugging, should be -2.5
         }
         else {
             // score based on proximity to end

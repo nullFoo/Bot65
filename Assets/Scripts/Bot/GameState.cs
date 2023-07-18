@@ -305,16 +305,18 @@ public class GameState
 
     public void MovePiece(PieceAbstract piece, SlotAbstract newSlot) {
         piece.slot.pieces.Remove(piece);
-        newSlot.AddPiece(piece);
         
         if(newSlot.pieces.Count == 1) { // check for capturable pieces
             if(newSlot.pieces[0].player != piece.player) {
                 CapturePiece(newSlot.pieces[0]);
             }
         }
+
+        newSlot.AddPiece(piece);
     }
 
     public void CapturePiece(PieceAbstract p) {
+        // Debug.Log("virtual - capture piece on slot " + p.slot.index);
         if(p.slot != null)
             p.slot.pieces.Remove(p);
         if(p.player) {
