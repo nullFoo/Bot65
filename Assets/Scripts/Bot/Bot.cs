@@ -257,7 +257,7 @@ public class Bot : MonoBehaviour
     List<List<Move>> GetAllMoveCombinations(GameState startState) {
         List<List<Move>> allCombinations = new List<List<Move>>();
 
-        if (move.after.diceRolls.Count != 0) {
+        if (move.after.diceRolls.Count > 0) {
             GenerateMoveCombination(startState, allCombinations);
         }
 
