@@ -261,19 +261,13 @@ public class Bot : MonoBehaviour
     }
 
     void GenerateMoveCombination(GameState gameState, List<Move> currentCombination, List<List<Move>> allCombinations) {
-        // Debug.Log(gameState.diceRolls.Count);
-        if(gameState.diceRolls.Count == 0) { // gone through all dice rolls, combination done
+        if(gameState.diceRolls.Count == 0 && currentCombination.Count > 0) { // gone through all dice rolls, combination done
             allCombinations.Add(currentCombination); // add it to the overall list
             return;
         }
 
         List<Move> legalMoves = new List<Move>(gameState.GetAllLegalMoves(this.isPlayingRed));
         foreach(Move move in legalMoves) {
-            if(move.after.diceRolls.Count == gameState.diceRolls.Count) {
-                Debug.Log("something's wrong");
-                return;
-            }
-
             List<Move> current = new List<Move>(currentCombination); // make a copy so it doesn't affect the other moves
             current.Add(move); // add this move to the current combinations
 
@@ -284,9 +278,6 @@ public class Bot : MonoBehaviour
 
             GenerateMoveCombination(move.after, current, allCombinations); // continue the recursive search
         }
-
-        // if there were no legal moves or we otherwise somehow reached the end of the function, just add the combination to the list
-        // allCombinations.Add(currentCombination);
     }
     
     // the bot will be playing red
