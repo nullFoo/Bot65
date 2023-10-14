@@ -255,28 +255,26 @@ public class Bot : MonoBehaviour
     }
 
     List<List<Move>> GetAllMoveCombinations(GameState startState) {
-        List<List<Move>> allCombinations = new List<List<Move>>(); // this will be referenced, not copied, allowing us to add to it from the recursive function
-        GenerateMoveCombination(startState, new List<Move>(), allCombinations);
+        List<List<Move>> allCombinations = new List<List<Move>>();
+
+        if (move.after.diceRolls.Count > 0) {
+            GenerateMoveCombination(startState, allCombinations);
+        }
+
         return allCombinations;
     }
 
-    void GenerateMoveCombination(GameState gameState, List<Move> currentCombination, List<List<Move>> allCombinations) {
-        if(gameState.diceRolls.Count == 0 && currentCombination.Count > 0) { // gone through all dice rolls, combination done
-            allCombinations.Add(currentCombination); // add it to the overall list
-            return;
-        }
+    void GenerateMoveCombination(GameState gameState, List<List<Move>> allCombinations, List<Move> currentCombination = new List<Move>()) {
+        foreach(Move move in gameState.GetAllLegalMoves(this.isPlayingRed)) {
+            List<Move> newCombination = new List<Move>(currentCombination);
+            newCombination.Add(move);
 
-        List<Move> legalMoves = new List<Move>(gameState.GetAllLegalMoves(this.isPlayingRed));
-        foreach(Move move in legalMoves) {
-            List<Move> current = new List<Move>(currentCombination); // make a copy so it doesn't affect the other moves
-            current.Add(move); // add this move to the current combinations
-
-            if(move.after.diceRolls.Count == 0) { // gone through all dice rolls, combination done
-                allCombinations.Add(current); // add it to the overall list
+            if(move.after.diceRolls.Count == 0) {
+                allCombinations.Add(current);
                 continue;
             }
 
-            GenerateMoveCombination(move.after, current, allCombinations); // continue the recursive search
+            GenerateMoveCombination(move.after, allCombinations, newCombination);
         }
     }
     
